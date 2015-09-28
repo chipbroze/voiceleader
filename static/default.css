@@ -1,0 +1,117 @@
+body {
+  background: #88BB88;
+  color: black;
+  font-family: Helvetica, sans-serif;
+  width: 700px;
+  margin: 0 auto 0 auto;
+  font-size: .9em;
+  border: 1px solid black;
+}
+header {
+  border-bottom: 1px solid black;
+}
+img {
+  /* This eliminates 'padding' below the image */
+  vertical-align: top;
+}
+img.clef {
+  position: absolute;
+  top: 20px;
+}
+article {
+  background: white;
+  border: 0px double red;
+  padding: 1em;
+}
+a.staff {
+  width: 100%;
+  height: 7em;
+  display: block;
+  background: #DDDDDD;
+  background-image: url("images/staff_background.png");
+  background-repeat: repeat-x;
+}
+a.staff img {
+  position: relative;
+}
+a.staff img.clef {
+  width: 2.5em;
+  top: 9%;
+  left: .1em;
+  margin-right: 1em;
+}
+a.staff img.note {
+  width: 1.3em;
+  top: 42%;
+  left: .2em;
+  margin-right: 1.2em;
+}
+a.staff img.accidental {
+  width: 1.3em;
+  top: 36%;
+  left: 0em;
+  margin-right: 0;
+}
+div#music {
+  border: .3em solid #440044;
+}
+div.float {
+  float: left;
+  margin-right: 1em;
+}
+div#voice_input label {
+  display: inline-block; 
+  width: 10em;
+  margin-right: .5em;
+  text-align: right;
+}
+table.chords {
+  width: 100%;
+  background: #BB66BB;
+}
+table.chords th {
+  background: black;
+  color: white;
+}
+table.chords td {
+  vertical-align: top;
+  background: #DDDDDD;
+}
+table.chords ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+h1, h2 {
+  font-size: 1.5em;
+  color: #440044;
+  margin-top: 0;
+}
+p.foot {
+  margin: 0;
+}
+form legend {
+  font-weight: bold;
+}
+table {
+  width: 100%;
+}
+table tr td {
+  vertical-align: top;
+}
+dt {
+  font-weight: bold;
+}
+dd {
+  width: 60%;
+  color: #222222;
+  font-style: italic;
+  margin: 0 0 1em 0;
+}
+footer {
+  font-size: .75em;
+  background: black;
+  color: white;
+  text-align: center;
+  margin: 0;
+}
