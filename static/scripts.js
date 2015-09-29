@@ -217,6 +217,7 @@ function fillPitches() {
 
 function validate(e) {
   var fields = ['s_input', 'a_input', 't_input', 'b_input'];
+  var numberNotes = document.forms["form"][fields[0]].value.split(',').length;
   for (var i = 0; i < 4; i++) {
     var notes = document.forms["form"][fields[i]].value;
     var reg = /^[A-Ga-g](#{1,2}|b{1,2})?\d+(,[A-Ga-g](#{1,2}|b{1,2})?\d+)*$/;
@@ -228,6 +229,11 @@ function validate(e) {
     if (!reg.test(notes)) {
       e.preventDefault();
       alert("Pitches must fit form");
+      return false;
+    }
+    if (notes.split(',').length !== numberNotes) {
+      e.preventDefault();
+      alert("All voices must have same number of pitches");
       return false;
     }
   }
