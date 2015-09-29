@@ -159,9 +159,11 @@ function Staff(voice) {
       this.deleteNote();
       break;
     case 61: // += key
+    case 187:
       this.notes[this.active].accidental.change(1);
       break;
     case 173: // -_ key
+    case 189:
       this.notes[this.active].accidental.change(-1);
       break;
     default:
