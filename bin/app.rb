@@ -3,8 +3,8 @@ require './lib/VoiceLeader.rb'
 require './lib/VoiceLeader/chord.rb'
 require './lib/VoiceLeader/voicelead.rb'
 
-set :port, 4567
-set :environment, :production
+# set :port, 4567
+# set :environment, :production
 set :static, true
 set :public_folder, "static"
 set :views, "views"
