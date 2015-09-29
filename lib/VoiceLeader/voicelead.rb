@@ -88,6 +88,17 @@ module VoiceLead
     return mistakes
   end
 
+  # Check for voice-crossing
+  def VoiceLead.crossing(chord)
+    mistakes = []
+    chord.intervals.each do |i|
+      if i[2] < 0
+        mistakes << Mistake.new('Voice crossing', "Between #{i[0]} and #{i[1]}")
+      end
+    end
+    return mistakes
+  end
+
   # Check that notes are within appropriate range
   def VoiceLead.range(chord)
     range = {

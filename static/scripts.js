@@ -202,7 +202,7 @@ var migrate = document.getElementById("migrate");
 migrate.addEventListener('click', function(){fillPitches();}, false);
 
 var form = document.getElementById("form");
-form.addEventListener('submit', function(){return validate();}, false);
+form.addEventListener('submit', function(e){validate(e);}, false);
 
 // Function for 'Fill Pitches' input button
 
@@ -215,13 +215,21 @@ function fillPitches() {
 
 // Function for validation
 
-function validate() {
-  var sop = document.forms["form"]["s_input"].value;
-  var reg = /^[A-Ga-g](#{1,2}|b{1,2})?\d+(,[A-Ga-g](#{1,2}|b{1,2})?\d+)*$/;
-  if (!reg.test(sop)) {
-    e.preventDefault(); 
-    alert("Pitches must fit form");
-    return false;
+function validate(e) {
+  var fields = ['s_input', 'a_input', 't_input', 'b_input'];
+  for (var i = 0; i < 4; i++) {
+    var notes = document.forms["form"][fields[i]].value;
+    var reg = /^[A-Ga-g](#{1,2}|b{1,2})?\d+(,[A-Ga-g](#{1,2}|b{1,2})?\d+)*$/;
+    if (notes.length > 100) {
+      e.preventDefault();
+      alert("Too many notes");
+      return false;
+    }
+    if (!reg.test(notes)) {
+      e.preventDefault();
+      alert("Pitches must fit form");
+      return false;
+    }
   }
 }
 

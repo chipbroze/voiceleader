@@ -111,7 +111,7 @@ class Chord
       'Major' => [8, 4, 7, nil],
       'Minor' => [9, 3, 7, nil],
       'Augmented' => 'n/a',
-      'Diminished' => [3, 9, 6, nil],
+      'Diminished' => [3, 9, 6, nil], # error: b, b, d, f returns third, third, root, root
       'Major 7th' => [1, 9, 3, 11],
       'Dominant 7th' => [2, 4, 7, 10],
       'Minor 7th' => [2, 8, 4, 10],

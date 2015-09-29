@@ -15,7 +15,7 @@ def find_mistakes(music, options)
     'p_octaves' => [:parallel, 'octaves'],
     'p_unisons' => [:parallel, 'unisons'],
     'sevenths' => [:sevenths, 'none'],  # unsure how to call variable arguments in loop
-    'intervals' => [:intervals, 'none'] 
+    'intervals' => [:intervals, 'none']
   }
   music.chord_pairs.each do |chord_a, chord_b|
     options.select{ |o| pair_options.has_key? o }.each do |o|
@@ -25,7 +25,8 @@ def find_mistakes(music, options)
   end
   single_options = {
     'spacing' => :spacing,
-    'range' => :range
+    'range' => :range,
+    'crossing' => :crossing
   }
   music.chords.each do |chord|
     options.select{ |o| single_options.has_key? o }.each do |o|
