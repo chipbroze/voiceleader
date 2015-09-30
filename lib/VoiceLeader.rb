@@ -26,7 +26,8 @@ def find_mistakes(music, options)
   single_options = {
     'spacing' => :spacing,
     'range' => :range,
-    'crossing' => :crossing
+    'crossing' => :crossing,
+    'doubling' => :doubling
   }
   music.chords.each do |chord|
     options.select{ |o| single_options.has_key? o }.each do |o|

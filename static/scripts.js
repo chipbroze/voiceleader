@@ -199,9 +199,13 @@ var alto = new Staff("alto");
 var tenor = new Staff("tenor");
 var bass = new Staff("bass");
 var music = [bass, tenor, alto, soprano];
+var audio = new AudioEnvironment();
 
 var migrate = document.getElementById("migrate");
 migrate.addEventListener('click', function(){fillPitches();}, false);
+
+var play = document.getElementById("play");
+play.addEventListener('click', function(){audio.playMusic();}, false);
 
 var form = document.getElementById("form");
 form.addEventListener('submit', function(e){validate(e);}, false);
@@ -213,6 +217,72 @@ function fillPitches() {
   alto.getNoteNames();
   tenor.getNoteNames();
   bass.getNoteNames();
+}
+
+// Constructor for Audio
+
+function AudioEnvironment() {
+  this.tempo = 40;
+  this.pitch = 0;
+  this.context = new (window.AudioContext || window.webkitAudioContext)();
+  this.oscillators = {};
+  this.waveforms = {
+    'soprano': 'sine',
+    'alto': 'sine',
+    'tenor': 'sine',
+    'bass': 'sine'
+  };
+  this.gains = {
+    'soprano': .7,
+    'alto': .9,
+    'tenor': .8,
+    'bass': 1
+  };
+  this.music = {};
+  this.getHertz = function(pitch) {
+    return Math.pow(2, (pitch - 45) / 12) * 440;
+  };
+  this.playNote = function(pitch, oscillator, when) {
+    oscillator.frequency.setValueAtTime(this.getHertz(pitch), when);
+  };
+  this.playLine = function(voice, when) {
+    var pitches = this.music[voice];
+    if (this.oscillators[voice])
+      this.oscillators[voice].disconnect();
+    var oscillator = this.context.createOscillator();
+    this.oscillators[voice] = oscillator;
+//    oscillator.type = this.waveforms[voice];
+    oscillator.setPeriodicWave(this.getPeriodicWave(voice));
+    oscillator.start(when);
+    var gain = this.context.createGain();
+    gain.gain.value = this.gains[voice];
+    gain.connect(this.context.destination);
+    oscillator.connect(gain);
+    for (var i = 0; i < pitches.length; i++) {
+      this.playNote(pitches[i], oscillator, when);
+      when += 60 / this.tempo;
+    }
+    oscillator.stop(when);
+  };
+  this.playMusic = function() {
+    this.music = getMusic();
+    var when = this.context.currentTime + .1;
+    for (var voice in this.music) {
+      if (this.music[voice] !== [])
+        this.playLine(voice, when);
+    }
+  };
+  this.getPeriodicWave = function(voice) {
+    var waves = {
+      'soprano': [0,0.4,0.4,1,1,1,0.3,0.7,0.6,0.5,0.9,0.8], // blowhorn
+      'alto': [0,-0.1,-0.5,0.4,0,-1,0,0], // chorus strings
+      'tenor': [0,.3,-.05,.01,-.01,0,0,0], // organ
+      'bass': [0,.1,-.09,.03,-.04,.01,-.01,0,0,0] // bass
+    };
+    var real = new Float32Array(waves[voice]);
+    var imag = new Float32Array(real.length);
+    return this.context.createPeriodicWave(real, imag);
+  };
 }
 
 // Function for validation
@@ -241,6 +311,37 @@ function validate(e) {
   }
 }
 
+// Function to get pitches from input_fields
+
+function convertPitches(voice) {
+  var letters = {'C': 0, 'D': 2, 'E': 4, 'F': 5, 'G': 7, 'A': 9, 'B': 11};
+  var accidentals = {'bb': -2, 'b': -1, '': 0, '#': 1, '##': 2};
+
+  var string = document.getElementById(voice[0] + "_input").value;
+  if (string == "")
+    return [];
+  var array = string.split(',');
+  var pitches = [];
+  for (var i = 0; i < array.length; i++) {
+    var letter = array[i][0];
+    array[i] = array[i].slice(1);
+    var number = /\d+/.exec(array[i])[0];
+    var accidental = array[i].replace(number, '');
+    var pitch = 0;
+    pitch += letters[letter] + (parseInt(number) - 1) * 12 + accidentals[accidental];
+    pitches.push(pitch);
+  }
+  return pitches;
+}
+
+function getMusic() {
+  var voices = ['soprano', 'alto', 'tenor', 'bass'];
+  var music = {};
+  for (var i = 0; i < 4; i++) {
+    music[voices[i]] = convertPitches(voices[i]);
+  }
+  return music;
+}
 
 // Functions for next and previousElementSibling() in IE < 9
 

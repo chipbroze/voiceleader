@@ -115,5 +115,40 @@ module VoiceLead
     end 
     return mistakes
   end 
+  
+  # Check for appropriate doubling
+  def VoiceLead.doubling(chord)
+    mistakes = []
+    return mistakes if chord.doubled.empty?
+
+    if chord.doubled.length > 1
+      mistakes << Mistake.new('Doubling', 'Chord incomplete; too many doublings')
+      return mistakes
+    end
+
+    doubled = chord.doubled[0]
+    case chord.low_part
+    when 'root'
+      unless doubled == 'root'
+        mistakes << Mistake.new('Doubling', 'Root should be doubled')
+      end
+    when 'third'
+      unless doubled == chord.parts['soprano'] 
+        mistakes << Mistake.new('Doubling', 'Soprano note should be doubled')
+      end
+    when 'fifth'
+      unless doubled == 'fifth'
+        mistakes << Mistake.new('Doubling', 'Fifth should be doubled')
+      end
+    when 'seventh'
+      unless doubled == 'root'
+        mistakes << Mistake.new('Doubling', 'Only root may be doubled in 7th chord')
+      end
+    end
     
+    # check for doubled leading tone
+
+    return mistakes
+  end
+
 end

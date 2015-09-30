@@ -48,6 +48,18 @@ class Chord
               :bass, :tenor, :alto, :soprano
   attr_writer :mistakes
 
+  # Find inversion of chord
+  def low_part
+    low_note = @pitches.key(@pitches.values.min)
+    low_part = @parts[low_note]
+  end
+
+  # Find doubled parts, if any
+  def doubled
+    parts = @parts_reverse.select{ |p, v| v.length > 1 }.keys
+    return parts
+  end
+
   # Returns 2D array of intervals between voice parts
   #   form: [low voice, high voice, interval]
   def get_intervals
@@ -111,7 +123,7 @@ class Chord
       'Major' => [8, 4, 7, nil],
       'Minor' => [9, 3, 7, nil],
       'Augmented' => 'n/a',
-      'Diminished' => [3, 9, 6, nil], # error: b, b, d, f returns third, third, root, root
+      'Diminished' => [3, 6, 9, nil], # error: b, b, d, f returns third, third, root, root: 0,9,6 | 3,0,9 | 6,3,0
       'Major 7th' => [1, 9, 3, 11],
       'Dominant 7th' => [2, 4, 7, 10],
       'Minor 7th' => [2, 8, 4, 10],
@@ -126,6 +138,15 @@ class Chord
     
     @pitches.each do |voice, pitch|
       poss_int = @pitch_set.map { |q| (pitch - q) % 12 }
+      if @type == 'Diminished'
+        if !poss_int.include?(3)
+          poss_int = [3]
+        elsif !poss_int.include?(6)
+          poss_int = [6]
+        else
+          poss_int = [9]
+        end
+      end 
       if values == 'n/a' || values == 'unknown'
         parts[voice] = values
         parts_reverse[values] << voice
