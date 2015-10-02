@@ -140,6 +140,7 @@ Staff.prototype.onBlur = function() {
   if (this.active !== null) {
     this.hideActive();
   }
+  fillPitches();
 };
 
 // keyboard functionality
@@ -440,9 +441,6 @@ var tenor = new Staff("tenor");
 var bass = new Staff("bass");
 var music = [bass, tenor, alto, soprano];
 var audio = new AudioEnv();
-
-var migrate = document.getElementById("migrate");
-migrate.addEventListener('click', function(){fillPitches();}, false);
 
 var play = document.getElementById("play");
 play.addEventListener('click', function(){audio.play();}, false);
