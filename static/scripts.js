@@ -230,6 +230,8 @@ Staff.prototype.setEvents = function() {
 function AudioEnv(tempo) {
   this.context = new (window.AudioContext || window.webkitAudioContext)();
   this.tempo = tempo || 60;
+  this.sequences = [];
+  this.timeOut = false;
   this.values = {
     'soprano': {'gain': 0.2, 'real': [0,  0.40,  0.40,  0.91,  0.91,  0.91,
                                          0.30,  0.70,  0.00,  0.00,  0.00]},
@@ -242,15 +244,38 @@ function AudioEnv(tempo) {
   };
 }
 
+// toggle play/stop on button click
+AudioEnv.prototype.toggle = function(button) {
+  if (button.value === "Stop Music") {
+    button.value = "Play Music";
+    this.stop();
+  } else {
+    button.value = "Stop Music";
+    this.play(button);
+  }
+};
+
 // play music
-AudioEnv.prototype.play = function(when) {
-  when = when || this.context.currentTime + 0.1;
+AudioEnv.prototype.play = function(button) {
+  var when = this.context.currentTime + 0.1;
+  var duration;
   var music = getMusic();
 
   for (var voice in music) {
     var seq = new Sequence(this, this.values[voice], music[voice]);
-    seq.play(when);
+    this.sequences.push(seq);
+    duration = seq.play(when) - when;
   }
+  var self = this;
+  this.timeOut = setTimeout(function(){self.toggle(button);}, duration * 1000);
+};
+
+// stop music playback
+AudioEnv.prototype.stop = function() {
+  for (var i = this.sequences.length - 1; i >= 0; i--) 
+    this.sequences[i].destroy();
+  this.sequences = [];
+  clearTimeout(this.timeOut);
 };
 
 /*
@@ -266,7 +291,7 @@ function Sequence(audioEnv, values, pitches) {
   this.osc.setPeriodicWave(this.getWave());
   this.gainNode = this.context.createGain();
   this.gainNode.gain.value = this.values['gain'];
-  this.createEQ();
+  this.equalizers = this.createEQ();
   this.pitches = pitches;
 }
 
@@ -279,16 +304,19 @@ Sequence.prototype.createEQ = function() {
     filter.type = 'peaking';
     filter.frequency.value = eq[freq];
     activeNode.connect(filter);
-    activeNode = filter;
+    activeNode = eq[freq] = filter;
   }
   activeNode.connect(this.context.destination);
+  return eq;
 };
 
 // disconnect Sequence and stop playing
 Sequence.prototype.destroy = function() {
-  this.osc.disconnect;
-  this.gainNode.disconnect;
-  this.osc.stop();
+  this.osc.disconnect();
+  this.gainNode.disconnect();
+  //for (var eq in this.equalizers) {
+    //this.equalizers[eq].disconnect();
+  //}
 };
 
 // schedule a note to play
@@ -307,6 +335,7 @@ Sequence.prototype.play = function(when) {
   for (var i in this.pitches)
     when = this.scheduleNote(this.pitches[i], when);
   this.osc.stop(when);
+  return when;
 };
 
 // return a periodic wave
@@ -443,7 +472,7 @@ var music = [bass, tenor, alto, soprano];
 var audio = new AudioEnv();
 
 var play = document.getElementById("play");
-play.addEventListener('click', function(){audio.play();}, false);
+play.addEventListener('click', function(){audio.toggle(this);}, false);
 
 var form = document.getElementById("form");
 form.addEventListener('submit', function(e){validate(e);}, false);
