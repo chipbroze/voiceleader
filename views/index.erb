@@ -1,11 +1,12 @@
 <h1>VoiceLeader: Home</h1>
-<p>VoiceLeader is a nifty little tool for error checking (and eventually, creating) simple four 
-   part voice-leading exercises.  By supplying the program with sequences of notes (in Soprano, 
-   Alto, Tenor, and Bass), you can check for specific voice leading errors, 
-   and print out a roman numeral analysis for the exercise.</p>
+<p>VoiceLeader is a nifty little tool for error checking (and eventually, 
+   creating) simple four part voice-leading exercises.  By supplying the 
+   program with sequences of notes (in Soprano, Alto, Tenor, and Bass), 
+   you can check for specific voice leading errors, and print out a roman 
+   numeral analysis for the exercise.</p>
  
 <hr>
- 
+
 <h2>Submit Your Music</h2>
 <form id="form" action="/results" method="POST">
   <fieldset>
@@ -42,16 +43,25 @@
       <input id="play" type="button" value="Play Music" style="width:10em;">
     </div>
     <div class="float" id="voice_input">
-      <label for="s_input">Soprano:</label><input id="s_input" type:"text" size="40" name="soprano" value="E5,F5,E5,D5,C5,D5,C5"><br>
-      <label for="a_input">Alto:</label><input id="a_input" type:"text" size="40" name="alto" value="G4,A4,A4,G#4,A4,B4,G4"><br>
-      <label for="t_input">Tenor:</label><input id="t_input" type:"text" size="40" name="tenor" value="C4,C4,C4,E4,E4,F4,E4"><br>
-      <label for="b_input">Bass:</label><input id="b_input" type:"text" size="40" name="bass" value="C3,F2,C3,B2,A2,G2,C3">
+      <label for="s_input">Soprano:</label>
+      <input id="s_input" type:"text" size="40" name="soprano" 
+        value="E5,F5,E5,D5,C5,D5,C5"><br>
+      <label for="a_input">Alto:</label>
+      <input id="a_input" type:"text" size="40" name="alto" 
+        value="G4,A4,A4,G#4,A4,B4,G4"><br>
+      <label for="t_input">Tenor:</label>
+      <input id="t_input" type:"text" size="40" name="tenor" 
+        value="C4,C4,C4,E4,E4,F4,E4"><br>
+      <label for="b_input">Bass:</label>
+      <input id="b_input" type:"text" size="40" name="bass" 
+        value="C3,F2,C3,B2,A2,G2,C3">
     </div>
   </fieldset>
   <fieldset>
     <legend>Voice Leading Errors</legend>
     <div class="float">
-      <label><input type="checkbox" name ="options[]" value="p_fifths" checked>Parallel Fifths</label><br>
+      <input id="p_fifths" type="checkbox" name ="options[]" value="p_fifths" checked>
+      <label for="p_fifths">Parallel Fifths</label><br>
       <label><input type="checkbox" name ="options[]" value="p_octaves" checked>Parallel Octaves</label><br>
       <label><input type="checkbox" name ="options[]" value="intervals" checked>Illegal intervals</label><br>  
       <label><input type="checkbox" name ="options[]" value="crossing" checked>Voice Crossing</label>
@@ -106,3 +116,4 @@
     <dd>Leading Tones resolve upward in outer voices</dd>
 </dl>
 
+<script language="JavaScript" type="text/javascript" src="/scripts.js"></script>

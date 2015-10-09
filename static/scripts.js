@@ -5,7 +5,7 @@
 // constructor for Accidental
 function Accidental(note) {
   this.node = document.createElement("img");
-  this.node.setAttribute("src", "images/accidental.png");
+  this.node.setAttribute("src", "/images/accidental.png");
   this.node.setAttribute("class", "accidental");
   this.note = note;
   this.staff = note.staff;
@@ -20,7 +20,7 @@ function Accidental(note) {
 Accidental.prototype.change = function(direction) {
   if (this.value + direction <= 2 && this.value + direction >= -2) {
     this.value += direction;
-    this.node.src = "images/" + this.types[this.value + 2] + ".png";
+    this.node.src = "/images/" + this.types[this.value + 2] + ".png";
   }
 };
 
@@ -31,7 +31,7 @@ Accidental.prototype.change = function(direction) {
 // constructor for Note
 function Note(staff) {
   this.node = document.createElement("img");
-  this.node.setAttribute("src", "images/note.png");
+  this.node.setAttribute("src", "/images/note.png");
   this.node.setAttribute("class", "note");
   this.staff = staff;
   this.staff.node.appendChild(this.node);
@@ -79,7 +79,7 @@ function Staff(voice) {
   this.voice = voice;
   this.node = document.getElementById(voice);
   this.clef = document.createElement("img");
-  this.clef.setAttribute("src", "images/" + voice + "clef.png");
+  this.clef.setAttribute("src", "/images/" + voice + "clef.png");
   this.clef.setAttribute("class", "clef");
   this.node.appendChild(this.clef);
   this.notes = [];
@@ -91,16 +91,16 @@ function Staff(voice) {
 // functions to set, hide, and un-hide the staff's active note
 Staff.prototype.makeActive = function(note) {
   if (this.active !== null) {
-    this.notes[this.active].node.src = "images/note.png";
+    this.notes[this.active].node.src = "/images/note.png";
   }
   this.active = this.notes.indexOf(note);
-  note.node.src = "images/notecolor.png";
+  note.node.src = "/images/notecolor.png";
 };
 Staff.prototype.hideActive = function() {
-  this.notes[this.active].node.src = "images/note.png";
+  this.notes[this.active].node.src = "/images/note.png";
 };
 Staff.prototype.showActive = function() {
-  this.notes[this.active].node.src = "images/notecolor.png";
+  this.notes[this.active].node.src = "/images/notecolor.png";
 };
 
 // add a new note to the staff
@@ -258,16 +258,17 @@ AudioEnv.prototype.toggle = function(button) {
 // play music
 AudioEnv.prototype.play = function(button) {
   var when = this.context.currentTime + 0.1;
-  var duration;
+  var duration = 0;
   var music = getMusic();
 
   for (var voice in music) {
     var seq = new Sequence(this, this.values[voice], music[voice]);
     this.sequences.push(seq);
-    duration = seq.play(when) - when;
+    var voiceDuration = seq.play(when) - when;
+    duration = Math.max(voiceDuration, duration);
   }
   var self = this;
-  this.timeOut = setTimeout(function(){self.toggle(button);}, duration * 1000);
+  this.timeOut = setTimeout(function(){self.toggle(button);}, (duration * 1000));
 };
 
 // stop music playback
@@ -290,7 +291,6 @@ function Sequence(audioEnv, values, pitches) {
   this.osc = this.context.createOscillator();
   this.osc.setPeriodicWave(this.getWave());
   this.gainNode = this.context.createGain();
-  this.gainNode.gain.value = this.values['gain'];
   this.equalizers = this.createEQ();
   this.pitches = pitches;
 }
@@ -299,7 +299,7 @@ function Sequence(audioEnv, values, pitches) {
 Sequence.prototype.createEQ = function() {
   var eq = [100, 1000, 2500];
   var activeNode = this.gainNode;
-  for (var freq in eq) {
+  for (var freq = 0; freq < eq.length; freq++) {
     var filter = this.context.createBiquadFilter();
     filter.type = 'peaking';
     filter.frequency.value = eq[freq];
@@ -312,11 +312,28 @@ Sequence.prototype.createEQ = function() {
 
 // disconnect Sequence and stop playing
 Sequence.prototype.destroy = function() {
-  this.osc.disconnect();
-  this.gainNode.disconnect();
+  var when = this.context.currentTime;
+  this.gainNode.gain.linearRampToValueAtTime(0, when + 0.1);
+  var that = this;
+  setTimeout(function() {
+    that.gainNode.disconnect();
+    this.osc.disconnect();
+  }, 100);
   //for (var eq in this.equalizers) {
     //this.equalizers[eq].disconnect();
   //}
+};
+
+// schedule the Sequence to play
+Sequence.prototype.play = function(when) {
+  this.osc.start(when);
+  this.gainNode.gain.setValueAtTime(0, when);
+  this.osc.connect(this.gainNode);
+  for (var i = 0, len = this.pitches.length; i < len; i++)
+    when = this.scheduleNote(this.pitches[i], when);
+  this.gainNode.gain.linearRampToValueAtTime(0, when += 0.1);
+  this.osc.stop(when += 0.2);
+  return when;
 };
 
 // schedule a note to play
@@ -324,18 +341,23 @@ Sequence.prototype.scheduleNote = function(pitch, when) {
   var freq = 440 * Math.pow(2, (pitch - 45) / 12);
   var duration = 60 / this.tempo;
   this.osc.frequency.setValueAtTime(freq, when);
-  this.osc.frequency.setValueAtTime(0, when + duration);
-  return when + duration;
+  this.gainNode.gain.linearRampToValueAtTime(
+    this.values['gain'], when + duration * 0.01);
+  when = this.noteDecay(when, duration);
+  this.osc.frequency.setValueAtTime(0, when);
+  return when;
 };
 
-// schedule the Sequence to play
-Sequence.prototype.play = function(when) {
-  this.osc.start(when);
-  this.osc.connect(this.gainNode);
-  for (var i in this.pitches)
-    when = this.scheduleNote(this.pitches[i], when);
-  this.osc.stop(when);
-  return when;
+// schedule fadeout of gainNode
+Sequence.prototype.noteDecay = function(start, duration) {
+  var value = this.values['gain'];
+  this.gainNode.gain.setValueAtTime(
+    value,       start + duration * 0.7);
+  this.gainNode.gain.linearRampToValueAtTime(
+    value * 0.9, start + duration * 0.9);
+  this.gainNode.gain.linearRampToValueAtTime(
+    value * 0.5, start + duration);
+  return start + duration;
 };
 
 // return a periodic wave
@@ -368,7 +390,7 @@ function validate(e) {
   var numberNotes = null;
   var errors = [];
 
-  for (var i in voices) {
+  for (var i = 0; i < voices.length; i++) {
     var input = getInput(voices[i]);
     var number = input.split(',').length;
     var err = inputErrors(input);
@@ -427,7 +449,7 @@ function convertPitches(voice) {
 function getMusic() {
   var voices = ['soprano', 'alto', 'tenor', 'bass'];
   var music = {};
-  for (var i in voices) {
+  for (var i = 0; i < voices.length; i++) {
     music[voices[i]] = convertPitches(voices[i]);
   }
   return music;

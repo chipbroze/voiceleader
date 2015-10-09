@@ -1,0 +1,60 @@
+<h1>VoiceLeader: Home</h1>
+<p>VoiceLeader is a nifty little tool for error checking (and eventually, creating) simple four 
+   part voice-leading exercises.  By supplying the program with sequences of notes (in Soprano, 
+   Alto, Tenor, and Bass), you can check for specific voice leading errors, 
+   and print out a roman numeral analysis for the exercise.</p>
+ 
+<hr>
+ 
+<h2>Create an Account</h2>
+<form id="account" action="/signup" method="POST">
+  <fieldset>
+    <legend>Signup</legend>
+    <label for="username">User Name</label>
+    <input id="username" type="text" name ="username" size="40" value="" /><br>
+    <label for="password">Password</label>
+    <input id="username" type="password" name ="password" size="40" value="" />
+  </fieldset>
+  <fieldset>
+    <legend>Submit</legend>
+    <input type="submit" value="Submit">
+  </fieldset>
+</form>
+
+<hr>
+
+<h2>Voiceleading Rules</h2>
+<dl>
+  <dt>Range</dt>
+    <dd>Bass: E2 - D4
+      <br>Tenor: D3 - F4
+      <br>Alto: A3 - D5
+      <br>Soprano: C4 - G5
+    </dd>
+  <dt>Spacing</dt>
+    <dd>With the exception of the bass, voice parts will not exceed an octave separation between 
+        one another</dd>
+  <dt>Parallel 5ths/8ves</dt>
+    <dd>No parts may move in parallel on these intervals</dd>
+  <dt>Preferred Doubling</dt>
+    <dd>In root position chords, the root is doubled
+      <br>In first inversion chords, the soprano is doubled
+      <br>Thirds in major chords are not doubled
+      <br>Sevenths and non-chord tones are not doubled
+    </dd>
+  <dt>Intervals</dt>
+    <dd>Intervals are kept small, generally speaking (bass excepted)
+      <br>No augumented or diminished intervals, except in rare occasions
+    </dd>
+  <dt>Voice Crossing</dt>
+    <dd>Voices must remain below the notes above them, and above the notes below</dd>
+  <dt>Voice Overlap</dt>
+    <dd>A voice may not leap past the notes directly above and below it</dd>
+  <dt>Treatment of Sevenths</dt>
+    <dd>Sevenths are resolved downward by step, and must be prepared</dd>
+  <dt>Cross Relations</dt>
+    <dd>Chromatic motion passed between two voices</dd>
+  <dt>Leading Tones</dt>
+    <dd>Leading Tones resolve upward in outer voices</dd>
+</dl>
+

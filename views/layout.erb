@@ -5,7 +5,7 @@
   <meta charset="utf-8">
   <meta description="Welcome to the only voice-leading app on the web!">
   <title>VoiceLeader</title>
-  <link rel="stylesheet" href="default.css">
+  <link rel="stylesheet" href="/default.css">
   <!--[if lt IE 9]>
     <script src="//html5shim.googlecode.com/svn/trunk/html5.js"></script>
   <![endif]-->
@@ -14,7 +14,24 @@
 <body>
 
 <header>
-  <img src="images/banner1.png" width="100%" height="100%" alt="Voiceleader">
+  <div id="login">
+  <% if session[:username] %>
+    <p>Signed in: <%= session[:username].upcase %>
+       <a href="/chorales">My Music</a> 
+       <a href="/logout">Logout</a></p>
+  <% else %>
+    <form id="login" action="/login" method="POST">
+      <label for="username">Username:</label>
+      <input id="username" type="text" size="20" name="username" value="">
+      <label for="password">Password:</label>
+      <input id="password" type="password" size="20" name="password" value="">
+      <input type="submit" value="Login">
+      <a href="/signup">Sign Up</a>
+    </form>
+  <% end %>
+  </div>
+ 
+  <img src="/images/banner1.png" width="100%" height="100%" alt="Voiceleader">
 </header>
 
 <article>
@@ -24,8 +41,6 @@
 <footer>
   <p class="foot">VoiceLeader: copyright 2015</p>
 </footer>
-
-<script language="JavaScript" type="text/javascript" src="scripts.js"></script>
 
 </body>
 </html>

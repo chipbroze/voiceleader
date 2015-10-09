@@ -1,11 +1,15 @@
 require './lib/VoiceLeader/chord.rb'
 require './lib/VoiceLeader/voicelead.rb'
+require './data/database.rb'
 
-def make_music(key, voices)
+###########
+# Results #
+###########
+
+def make_music(key, voice_strings)
   key = key.split(" ")
   key = {'type' => key[0], 'number' => key[1].to_i}
-  voices.map! { |v| Voice.new(v) }
-  
+  voices = voice_strings.map { |v| Voice.new(v) }
   music = Music.new(key, voices)
 end
 
@@ -34,4 +38,25 @@ def find_mistakes(music, options)
       chord.mistakes += VoiceLead.send(single_options[o], chord)
     end
   end
+end
+
+############
+# Security #
+############
+
+module Secure
+  require 'bcrypt'
+  
+  def Secure.encrypt(text)
+    BCrypt::Password.create(text)
+  end
+
+  def Secure.login?(username, password)
+    if (user = Sql::User.find_by name: username)
+      hash = BCrypt::Password.new(user.password)
+      return username if hash == password
+    end
+    return nil
+  end
+
 end
