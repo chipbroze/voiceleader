@@ -14,6 +14,7 @@
 <body>
 
 <header>
+  <br>
   <div id="login">
   <% if session[:username] %>
     <p>Signed in: <%= session[:username].upcase %>
@@ -30,8 +31,10 @@
     </form>
   <% end %>
   </div>
- 
-  <img src="/images/banner1.png" width="100%" height="100%" alt="Voiceleader">
+
+  <div class="center">
+    <img src="/images/banner1.png" border="1" width="100%" height="100%" alt="Voiceleader">
+  </div>
 </header>
 
 <article>

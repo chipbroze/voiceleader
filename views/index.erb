@@ -1,17 +1,17 @@
-<h1>VoiceLeader: Home</h1>
+<h2>Welcome to VoiceLeader!</h2>
 <p>VoiceLeader is a nifty little tool for error checking (and eventually, 
    creating) simple four part voice-leading exercises.  By supplying the 
    program with sequences of notes (in Soprano, Alto, Tenor, and Bass), 
    you can check for specific voice leading errors, and print out a roman 
    numeral analysis for the exercise.</p>
  
-<hr>
+<br>
 
-<h2>Submit Your Music</h2>
+<h2>Evaluate Your Music</h2>
 <form id="form" action="/results" method="POST">
-  <fieldset>
-    <legend>Key</legend>
-    <select name="key">
+<fieldset>
+  <legend>Input Music</legend>
+  <select name="key">
     <option value="sharp 0">C Major / a minor</option>
     <option value="sharp 7">G Major / e minor</option>
     <option value="sharp 2">D Major / b minor</option>
@@ -27,93 +27,112 @@
     <option value="flat 1">Db Major / b-flat minor</option>
     <option value="flat 6">Gb Major / e-flat minor</option>
     <option value="flat 11">Cb Major / a-flat minor</option>
-    </select>
-  </fieldset>
-  <fieldset>
-    <legend>Notes</legend>
-    <!-- all staves in single line to avoid DOM artifacts -->
-    <div id="music">
-      <a class="staff" id="soprano" tabindex="0"></a>
-      <a class="staff" id="alto" tabindex="0"></a>
-      <a class="staff" id="tenor" tabindex="0"></a>
-      <a class="staff" id="bass" tabindex="0"></a>
-    </div>
-    <br>
-    <div class="float">
-      <input id="play" type="button" value="Play Music" style="width:10em;">
-    </div>
-    <div class="float" id="voice_input">
-      <label for="s_input">Soprano:</label>
-      <input id="s_input" type:"text" size="40" name="soprano" 
-        value="E5,F5,E5,D5,C5,D5,C5"><br>
-      <label for="a_input">Alto:</label>
-      <input id="a_input" type:"text" size="40" name="alto" 
-        value="G4,A4,A4,G#4,A4,B4,G4"><br>
-      <label for="t_input">Tenor:</label>
-      <input id="t_input" type:"text" size="40" name="tenor" 
-        value="C4,C4,C4,E4,E4,F4,E4"><br>
-      <label for="b_input">Bass:</label>
-      <input id="b_input" type:"text" size="40" name="bass" 
-        value="C3,F2,C3,B2,A2,G2,C3">
-    </div>
-  </fieldset>
-  <fieldset>
-    <legend>Voice Leading Errors</legend>
-    <div class="float">
-      <input id="p_fifths" type="checkbox" name ="options[]" value="p_fifths" checked>
-      <label for="p_fifths">Parallel Fifths</label><br>
-      <label><input type="checkbox" name ="options[]" value="p_octaves" checked>Parallel Octaves</label><br>
-      <label><input type="checkbox" name ="options[]" value="intervals" checked>Illegal intervals</label><br>  
-      <label><input type="checkbox" name ="options[]" value="crossing" checked>Voice Crossing</label>
-    </div>
-    <div class="float"> 
-      <label><input type="checkbox" name ="options[]" value="sevenths" checked>Sevenths resolve down</label><br>
-      <label><input type="checkbox" name ="options[]" value="spacing" checked>Spacing between parts</label><br>
-      <label><input type="checkbox" name ="options[]" value="range" checked>Voice ranges</label><br>
-      <label><input type="checkbox" name ="options[]" value="doubling" checked>Doubling</label> 
-    </div>
-  </fieldset>
-  <fieldset>
-    <legend>Submit</legend>
-    <input type="submit" value="Submit">
-  </fieldset>
+  </select>
+  <br><br>
+  <div id="music">
+    <a class="staff" id="soprano" tabindex="0"></a>
+    <a class="staff" id="alto" tabindex="0"></a>
+    <a class="staff" id="tenor" tabindex="0"></a>
+    <a class="staff" id="bass" tabindex="0"></a>
+  </div>
+  <br>
+  <div class="float">
+    <input id="play" type="button" value="Play Music" style="width:10em;"><br>
+    <input id="draw" type="button" value="Draw Music" style="width:10em;"><br>
+    <input id="clear" type="button" value="Clear Music" style="width:10em;">
+  </div>
+  <div class="float" id="voice_input">
+    <label for="s_input">Soprano:</label>
+    <input id="s_input" type:"text" size="40" name="soprano" 
+      value="E5,F5,E5,D5,C5,D5,C5"><br>
+    <label for="a_input">Alto:</label>
+    <input id="a_input" type:"text" size="40" name="alto" 
+      value="G4,A4,A4,G#4,A4,B4,G4"><br>
+    <label for="t_input">Tenor:</label>
+    <input id="t_input" type:"text" size="40" name="tenor" 
+      value="C4,C4,C4,E4,E4,F4,E4"><br>
+    <label for="b_input">Bass:</label>
+    <input id="b_input" type:"text" size="40" name="bass" 
+      value="C3,F2,C3,B2,A2,G2,C3">
+  </div>
+</fieldset>
+<fieldset>
+  <legend>Check for Errors</legend>
+  <div class="float">
+    <input id="p_fifths" type="checkbox" name ="options[]" 
+      value="p_fifths" checked>
+    <label for="p_fifths">Parallel Fifths</label><br>
+    <input id="p_octaves" type="checkbox" name ="options[]" 
+      value="p_octaves" checked>
+    <label for="p_octaves">Parallel Octaves</label><br>
+    <input id="intervals" type="checkbox" name ="options[]" 
+      value="intervals" checked>
+    <label for="intervals">Illegal intervals</label><br>  
+    <input id="crossing" type="checkbox" name ="options[]" 
+      value="crossing" checked>
+    <label for="crossing">Voice Crossing</label>
+  </div>
+  <div class="float"> 
+    <input id="sevenths" type="checkbox" name ="options[]" 
+      value="sevenths" checked>
+    <label for="sevenths">Sevenths resolve down</label><br>
+    <input id="spacing" type="checkbox" name ="options[]" 
+      value="spacing" checked>
+    <label for="spacing">Spacing between parts</label><br>
+    <input id="range" type="checkbox" name ="options[]" 
+      value="range" checked>
+    <label for="range">Voice ranges</label><br>
+    <input id="doubling" type="checkbox" name ="options[]" 
+      value="doubling" checked>
+    <label for="doubling">Doubling</label> 
+  </div>
+</fieldset>
+<fieldset>
+  <input type="submit" value="Submit">
+</fieldset>
 </form>
 
-<hr>
+<br>
 
 <h2>Voiceleading Rules</h2>
+<div class="column">
 <dl>
   <dt>Range</dt>
-    <dd>Bass: E2 - D4
-      <br>Tenor: D3 - F4
-      <br>Alto: A3 - D5
-      <br>Soprano: C4 - G5
-    </dd>
+  <dd>Bass: E2 - D4
+    <br>Tenor: D3 - F4
+    <br>Alto: A3 - D5
+    <br>Soprano: C4 - G5
+  </dd>
   <dt>Spacing</dt>
-    <dd>With the exception of the bass, voice parts will not exceed an octave separation between 
-        one another</dd>
+  <dd>With the exception of the bass, voice parts will not exceed an octave separation between 
+      one another</dd>
   <dt>Parallel 5ths/8ves</dt>
-    <dd>No parts may move in parallel on these intervals</dd>
+  <dd>No parts may move in parallel on these intervals</dd>
   <dt>Preferred Doubling</dt>
-    <dd>In root position chords, the root is doubled
-      <br>In first inversion chords, the soprano is doubled
-      <br>Thirds in major chords are not doubled
-      <br>Sevenths and non-chord tones are not doubled
-    </dd>
-  <dt>Intervals</dt>
-    <dd>Intervals are kept small, generally speaking (bass excepted)
-      <br>No augumented or diminished intervals, except in rare occasions
-    </dd>
-  <dt>Voice Crossing</dt>
-    <dd>Voices must remain below the notes above them, and above the notes below</dd>
-  <dt>Voice Overlap</dt>
-    <dd>A voice may not leap past the notes directly above and below it</dd>
-  <dt>Treatment of Sevenths</dt>
-    <dd>Sevenths are resolved downward by step, and must be prepared</dd>
-  <dt>Cross Relations</dt>
-    <dd>Chromatic motion passed between two voices</dd>
-  <dt>Leading Tones</dt>
-    <dd>Leading Tones resolve upward in outer voices</dd>
+  <dd>In root position chords, the root is doubled
+    <br>In first inversion chords, the soprano is doubled
+    <br>Thirds in major chords are not doubled
+    <br>Sevenths and non-chord tones are not doubled
+  </dd>
 </dl>
-
+<br><br>
+</div>
+<div>
+<dl>
+  <dt>Intervals</dt>
+  <dd>Intervals are kept small, generally speaking (bass excepted)
+    <br>No augumented or diminished intervals, except in rare occasions
+  </dd>
+  <dt>Voice Crossing</dt>
+  <dd>Voices must remain below the notes above them, and above the notes below</dd>
+  <dt>Voice Overlap</dt>
+  <dd>A voice may not leap past the notes directly above and below it</dd>
+  <dt>Treatment of Sevenths</dt>
+  <dd>Sevenths are resolved downward by step, and must be prepared</dd>
+  <dt>Cross Relations</dt>
+  <dd>Chromatic motion passed between two voices</dd>
+  <dt>Leading Tones</dt>
+  <dd>Leading Tones resolve upward in outer voices</dd>
+</dl>
+</div>
 <script language="JavaScript" type="text/javascript" src="/scripts.js"></script>

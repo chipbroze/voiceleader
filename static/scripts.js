@@ -1,4 +1,63 @@
 /*
+  1. data.js
+  2. events.js
+  3. render.js
+
+  4. main.js <-- contains all procedural code
+*/
+
+//setupDom function ( to create DOM elements )
+
+// draw function overall to render all data.
+
+/*
+ * Ledger Line Class
+ */
+
+// contructor for Ledger Line
+function LedgerLine(note) {
+  this.node = document.createElement("img");
+  this.node.setAttribute("src", "/images/ledger.png");
+  this.node.setAttribute("class", "ledger");
+  this.note = note;
+  this.staff = note.staff;
+  this.staff.node.insertBefore(this.node, note.node);
+  this.setX();
+  this.place();
+}
+
+// set or reset position along x axis
+LedgerLine.prototype.setX = function() {
+  this.xPos = this.note.node.getBoundingClientRect().left -
+              this.staff.node.getBoundingClientRect().left - 3;
+  this.node.style.left = this.xPos + 'px';
+};
+
+// check for note position on creation
+LedgerLine.prototype.place = function() {
+  if (this.note.position > 12)
+    this.setY('top');
+  else if (this.note.position < 2)
+    this.setY('bottom');
+  else
+    this.visible(false);
+};
+
+// set or reset position along y axis
+LedgerLine.prototype.setY = function(place) {
+  var yPositions = {top: .8, bottom: 5.8};
+  this.yPos = yPositions[place];
+  this.node.style.top = this.yPos + 'em';
+  this.visible(true);
+};
+
+// toggle visibility on and off
+LedgerLine.prototype.visible = function(bool) {
+  var path = bool ? '/images/ledger.png' : '/images/ledger_hide.png';
+  this.node.setAttribute('src', path);
+};
+
+/*
  * Accidental Class
  */
 
@@ -38,7 +97,35 @@ function Note(staff) {
   this.position = 7;
   this.yPos = parseInt(window.getComputedStyle(this.node).top);
   this.accidental = new Accidental(this);
+  this.ledger = new LedgerLine(this);
 }
+
+// place note on staff by name
+Note.prototype.place = function(name) {
+  if (name === undefined)
+    return false;
+  
+  var voice = this.staff.voice;
+  var notes = ['B3', 'C4', 'D4', 'E4', 'F4', 'G4', 'A4',
+               'B4', 'C5', 'D5', 'E5', 'F5', 'G5', 'A5', 'B5', 'C6', 'D6'];
+  var parsedName = parseNoteName(name);
+  var clefChange = 0;
+  if (this.staff.voice === 'tenor')
+    parsedName[2] = parsedName[2] * 1 + 1; //*1 to convert str to num
+  if (this.staff.voice === 'bass') {
+    parsedName[2] = parsedName[2] * 1 + 2;
+    clefChange = 2;
+  }
+  var note = parsedName[0] + parsedName[2];
+  this.position = notes.indexOf(note) - clefChange;
+  this.yPos -= 6 * (this.position - 7);
+  this.node.style.top = this.yPos + "%";
+  this.accidental.yPos -= 6 * (this.position - 7);
+  this.accidental.node.style.top = this.accidental.yPos + "%";
+  var symbolIndex = this.accidental.symbols.indexOf(parsedName[1]);
+  this.accidental.change(symbolIndex - 2);
+  this.ledger.place();
+};
 
 // move note up or down on staff
 Note.prototype.move = function(direction) {
@@ -49,6 +136,7 @@ Note.prototype.move = function(direction) {
     this.node.style.top = this.yPos + "%";
     this.accidental.node.style.top = this.accidental.yPos + "%";
     this.position += direction;
+    this.ledger.place();
   }
 };
 
@@ -77,7 +165,7 @@ Note.prototype.getName = function() {
 // create a new staff
 function Staff(voice) {
   this.voice = voice;
-  this.node = document.getElementById(voice);
+  this.node = document.getElementById(voice); //move to separate draw function?  Keep data separate from render.
   this.clef = document.createElement("img");
   this.clef.setAttribute("src", "/images/" + voice + "clef.png");
   this.clef.setAttribute("class", "clef");
@@ -104,13 +192,21 @@ Staff.prototype.showActive = function() {
 };
 
 // add a new note to the staff
-Staff.prototype.addNote = function() {
-  if (this.notes.length >= 10) {
+Staff.prototype.addNote = function(name) {
+  if (this.notes.length >= 20) {
     return false;
   }
   var newNote = new Note(this);
   this.notes.push(newNote);
   this.makeActive(newNote);
+  newNote.place(name);  
+};
+
+// add string of notes to staff
+Staff.prototype.placeNotes = function(notesString) {
+  var notes = notesString.split(',');
+  for (var i = 0; i < notes.length; i++)
+    this.addNote(notes[i]);
 };
 
 // delete a note (default: active note)
@@ -118,14 +214,22 @@ Staff.prototype.deleteNote = function() {
   if (this.active > 0) {
     this.makeActive(this.notes[this.active - 1]);
     this.node.removeChild(this.notes[this.active + 1].accidental.node);
+    this.node.removeChild(this.notes[this.active + 1].ledger.node);
     this.node.removeChild(this.notes[this.active + 1].node);
     this.notes.splice(this.active + 1, 1);
   } else if (this.active === 0) {
     this.node.removeChild(this.notes[this.active].accidental.node);
+    this.node.removeChild(this.notes[this.active].ledger.node);
     this.node.removeChild(this.notes[this.active].node);
     this.active = null;
     this.notes = [];
   }
+};
+
+// delete all notes from staff
+Staff.prototype.clear = function() {
+  for (var i = this.notes.length; i > 0; i--)
+    this.deleteNote();
 };
 
 // functions for staff focus/blur
@@ -317,7 +421,7 @@ Sequence.prototype.destroy = function() {
   var that = this;
   setTimeout(function() {
     that.gainNode.disconnect();
-    this.osc.disconnect();
+    //this.osc.disconnect(); **uneeded.  Because disocnnecting gain automatically destroys osc??
   }, 100);
   //for (var eq in this.equalizers) {
     //this.equalizers[eq].disconnect();
@@ -426,6 +530,16 @@ function calcPitch(l, a, o) {
   return letters[l] + accidentals[a] + (parseInt(o) - 1) * 12;
 }
 
+// return letter, accidental, number from note name
+function parseNoteName (name) {
+  var letter = name[0];
+  name = name.slice(1);
+  var number = /\d+/.exec(name)[0];
+  var accidental = name.replace(number, '');
+  return [letter, accidental, number];
+}
+
+
 // get array of pitches from voice input
 function convertPitches(voice) {
   var string = getInput(voice);
@@ -436,11 +550,8 @@ function convertPitches(voice) {
     return pitches;
 
   for (var i = 0; i < array.length; i++) {
-    var letter = array[i][0];
-    array[i] = array[i].slice(1);
-    var number = /\d+/.exec(array[i])[0];
-    var accidental = array[i].replace(number, '');
-    pitches.push(calcPitch(letter, accidental, number));
+    var name = parseNoteName(array[i]);
+    pitches.push(calcPitch(name[0], name[1], name[2]));
   }
   return pitches;
 }
@@ -459,13 +570,28 @@ function getMusic() {
  * Other miscellaneous page functions
  */
 
-// function for 'Fill Pitches' input button
+// function for input buttons
 
 function fillPitches() {
   soprano.getNoteNames();
   alto.getNoteNames();
   tenor.getNoteNames();
   bass.getNoteNames();
+}
+function drawPitches(music) {
+  for (var i = 0; i < music.length; i++) {
+    var input = getInput(music[i].voice);
+    if (music[i].notes.length < 1)  
+      music[i].clear();
+    console.log(input);
+    if (input == "") continue;
+    music[i].placeNotes(input);
+    music[i].hideActive();
+  }
+}
+function clearPitches(music) {
+  for (var i = 0; i < music.length; i++)
+    music[i].clear();
 }
 
 // functions for next/previousElementSibling() in IE < 9
@@ -496,5 +622,13 @@ var audio = new AudioEnv();
 var play = document.getElementById("play");
 play.addEventListener('click', function(){audio.toggle(this);}, false);
 
+var draw = document.getElementById("draw");
+draw.addEventListener('click', function(){drawPitches(music);}, false);
+
+var clear = document.getElementById("clear");
+clear.addEventListener('click', function(){clearPitches(music);}, false);
+
 var form = document.getElementById("form");
 form.addEventListener('submit', function(e){validate(e);}, false);
+
+drawPitches(music);

@@ -1,14 +1,14 @@
 body {
-  background: #88BB88;
-  color: black;
+  background: 'white';
+  color: 'black';
   font-family: Helvetica, sans-serif;
   width: 700px;
   margin: 0 auto 0 auto;
   font-size: .9em;
-  border: 1px solid black;
+  border: 0px solid black;
 }
 header {
-  border-bottom: 1px solid black;
+  border-bottom: 0px solid black;
 }
 img {
   /* This eliminates 'padding' below the image */
@@ -28,8 +28,9 @@ a.staff {
   height: 7em;
   display: block;
   background: #DDDDDD;
-  background-image: url("images/staff_background.png");
+  background-image: url(images/staff_background.png);
   background-repeat: repeat-x;
+  position: relative;
 }
 a.staff img {
   position: relative;
@@ -52,23 +53,32 @@ a.staff img.accidental {
   left: 0em;
   margin-right: 0;
 }
+a.staff img.ledger {
+  position: absolute;
+  z-index: 1;
+}
 div#login {
-  background: black;
+  background: 'white';
   text-align: right;
   width: 100%;
   height: 2em;
 }
 #login p, #login label, #login a {
   text-align: right;
-  color: white;
+  color: 'black';
   margin: 0;
 }
 div#music {
-  border: .3em solid #440044;
+  border: 1px solid #440044;
 }
-div.float {
+.float {
   float: left;
   margin-right: 1em;
+}
+div.column {
+  float: left;
+  width: 45%;
+  margin-right: 5%;
 }
 div#voice_input label {
   display: inline-block; 
@@ -114,15 +124,12 @@ dt {
   font-weight: bold;
 }
 dd {
-  width: 60%;
   color: #222222;
   font-style: italic;
   margin: 0 0 1em 0;
 }
 footer {
   font-size: .75em;
-  background: black;
-  color: white;
   text-align: center;
   margin: 0;
 }

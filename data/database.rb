@@ -1,4 +1,4 @@
-require ‘pg’
+require 'pg'
 require 'active_record'
 
 # ActiveRecord::Base.logger = Logger.new(File.open('./data/database.log', 'w'))
@@ -6,8 +6,12 @@ require 'active_record'
 db = URI.parse(ENV['DB_PATH'])
 
 ActiveRecord::Base.establish_connection(
-  :adapter  => 'sqlite3',
-  :database => './data/test.db'
+  :adapter  => db.scheme == 'postgres' ? 'postgresql' : db.scheme,
+  :host     => db.host,
+  :username => db.user,
+  :password => db.password,
+  :database => db.path[1..-1],
+  :encoding => 'utf8'
 )
 
 ActiveRecord::Schema.define do
