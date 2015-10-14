@@ -1,4 +1,4 @@
-require 'sqlite3'
+require ‘pg’
 require 'active_record'
 
 # ActiveRecord::Base.logger = Logger.new(File.open('./data/database.log', 'w'))

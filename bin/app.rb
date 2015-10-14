@@ -64,8 +64,8 @@ post '/signup' do
 end
 
 post '/update' do
-  @chorale0 = params[:chorale0]
-  @user = Sql::User.find_by name: session[:username]
-  @user.chorales[0].update_attribute(:name, @chorale0)
+#  @chorale0 = params[:chorale0]
+#  @user = Sql::User.find_by name: session[:username]
+#  @user.chorales[0].update_attribute(:name, @chorale0)
   redirect '/chorales', 303
 end
