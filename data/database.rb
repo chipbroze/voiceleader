@@ -1,7 +1,9 @@
 require 'sqlite3'
 require 'active_record'
 
-ActiveRecord::Base.logger = Logger.new(File.open('./data/database.log', 'w'))
+# ActiveRecord::Base.logger = Logger.new(File.open('./data/database.log', 'w'))
+
+db = URI.parse(ENV['DB_PATH'])
 
 ActiveRecord::Base.establish_connection(
   :adapter  => 'sqlite3',
