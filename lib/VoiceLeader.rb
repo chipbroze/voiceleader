@@ -1,6 +1,7 @@
 require './lib/VoiceLeader/chord.rb'
 require './lib/VoiceLeader/voicelead.rb'
 require './data/database.rb'
+require 'bcrypt'
 
 ###########
 # Results #
@@ -45,7 +46,6 @@ end
 ############
 
 module Secure
-  require 'bcrypt'
   
   def Secure.encrypt(text)
     BCrypt::Password.create(text)
