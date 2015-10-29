@@ -1,13 +1,20 @@
-/*
- * Audio Environment Class
- */
+// AUDIO ENVIRONMENT CLASS //
 
-// create a new Audio Environment
-function AudioEnv(tempo) {
+/**
+ * Create a new Audio Environment.
+ * @property {object} context: Holds WebAudio API context.
+ * @property {array} sequences: Sequence objects holding line data.
+ * @property {bool/number} playing: Either 'false' or setTimeout value.
+ * @property {number} tempo: Stores playback speed in beats per minute (bpm).
+ * @property {object} music: Stores note data for playback.
+ * @property {object} values: Data produces sine wave variants.
+ */
+function AudioEnv() {
   this.context = new (window.AudioContext || window.webkitAudioContext)();
-  this.tempo = tempo || 60;
   this.sequences = [];
-  this.timeOut = false;
+  this.playing = false;
+  this.tempo;
+  this.music;
   this.values = {
     'soprano': {'gain': 0.2, 'real': [0,  0.40,  0.40,  0.91,  0.91,  0.91,
                                          0.30,  0.70,  0.00,  0.00,  0.00]},
@@ -20,58 +27,70 @@ function AudioEnv(tempo) {
   };
 }
 
-// toggle play/stop on button click
-AudioEnv.prototype.toggle = function(button) {
-  if (button.value === "Stop Music") {
-    button.value = "Play Music";
-    this.stop();
-  } else {
-    button.value = "Stop Music";
-    this.play(button);
-  }
-};
-
-// play music
-AudioEnv.prototype.play = function(button) {
+/**
+ * Schedule music data for playback, and schedule stop() function.
+ * @param {object} music: Contains note data in the following form--
+ *   {lineName: [[notePitch1, noteBeats1], ...], ...}
+ * @param {number} tempo: Speed for playback (in bpm).
+ * @var {number} when: Store starting time and update throughout scheduling.
+ * @return {number} duration: Store time length of longest sequence.
+ */
+AudioEnv.prototype.play = function(music, tempo) {
+  this.tempo = tempo || 60;
+  this.music = music;
+  
   var when = this.context.currentTime + 0.1;
   var duration = 0;
-  var music = getMusic();
 
   for (var voice in music) {
     var seq = new Sequence(this, this.values[voice], music[voice]);
     this.sequences.push(seq);
-    var voiceDuration = seq.play(when) - when;
-    duration = Math.max(voiceDuration, duration);
+    var seqDuration = seq.play(when) - when;
+    duration = Math.max(seqDuration, duration);
   }
-  var self = this;
-  this.timeOut = setTimeout(function(){self.toggle(button);}, (duration * 1000));
+  return duration;
 };
 
-// stop music playback
+/**
+ * Stop music playback by calling destroy() on each sequence.
+ * @return {bool} playing: Overwrite setTimeout value with 'false'.
+ */
 AudioEnv.prototype.stop = function() {
   for (var i = this.sequences.length - 1; i >= 0; i--) 
     this.sequences[i].destroy();
   this.sequences = [];
-  clearTimeout(this.timeOut);
+  return this.playing = false;
 };
 
-/*
- * Sequence Class
- */
+// SEQUENCE CLASS //
 
-// create a new Sequence
+/**
+ * Create a new sequence.
+ * @param {object} audioEnv: Pointer to parent object.
+ * @param {object} values: Line-specific values for sine-wave variant.
+ * @param {array} pitches: 2-D array of notes [pitch, beats].
+ * @prop {object} context: Inherit audio context from AudioEnv.
+ * @prop {number} tempo: Inherit tempo (bpm) from AudioEnv.
+ * @prop {object} osc: Create new oscillator for playback.
+ * @prop {object} gainNode: Create new node for volume control.
+ * @prop {array} equalizers: Connected series of Biquad filters.
+ */
 function Sequence(audioEnv, values, pitches) {
-  this.context = audioEnv.context;
   this.values = values;
+  this.pitches = pitches;
+  this.context = audioEnv.context;
   this.tempo = audioEnv.tempo;
   this.osc = this.context.createOscillator();
   this.osc.setPeriodicWave(this.getWave());
   this.gainNode = this.context.createGain();
   this.equalizers = this.createEQ();
-  this.pitches = pitches;
 }
 
-// create Fx EQ nodes
+/**
+ * Create EQ nodes.
+ * -->gainNode-->biquad1-->biquad2-->biquad3-->speakers
+ * @return {array} eq: List of biquad filters.
+ */
 Sequence.prototype.createEQ = function() {
   var eq = [100, 1000, 2500];
   var activeNode = this.gainNode;
@@ -86,18 +105,19 @@ Sequence.prototype.createEQ = function() {
   return eq;
 };
 
-// disconnect Sequence and stop playing
+/**
+ * Disconnect sequence to stop playback.
+ * Fade out volume quickly, then disconnect oscillator.
+ * @return {number} when: Time at which disconnect happens.
+ */
 Sequence.prototype.destroy = function() {
   var when = this.context.currentTime;
-  this.gainNode.gain.linearRampToValueAtTime(0, when + 0.1);
-  var that = this;
+  this.gainNode.gain.linearRampToValueAtTime(0, when += 0.1);
   setTimeout(function() {
-    that.gainNode.disconnect();
-    that.osc.disconnect();
-  }, 100);
-  //for (var eq in this.equalizers) {
-    //this.equalizers[eq].disconnect();
-  //}
+    this.gainNode.disconnect();
+    this.osc.disconnect();
+  }.bind(this), 100);
+  return when;
 };
 
 // schedule the Sequence to play
@@ -108,14 +128,16 @@ Sequence.prototype.play = function(when) {
   for (var i = 0, len = this.pitches.length; i < len; i++)
     when = this.scheduleNote(this.pitches[i], when);
   this.gainNode.gain.linearRampToValueAtTime(0, when += 0.1);
-  this.osc.stop(when += 0.2);
+  this.osc.stop(when + 0.2);
   return when;
 };
 
 // schedule a note to play
-Sequence.prototype.scheduleNote = function(pitch, when) {
-  var freq = 440 * Math.pow(2, (pitch - 45) / 12);
-  var duration = 60 / this.tempo;
+Sequence.prototype.scheduleNote = function(note, when) {
+  var pitch = note[0];
+  var beats = note[1];
+  var freq = pitch !== null ? 440 * Math.pow(2, (pitch - 45) / 12) : 0;
+  var duration = beats * 60 / this.tempo;
   this.osc.frequency.setValueAtTime(freq, when);
   this.gainNode.gain.linearRampToValueAtTime(
     this.values['gain'], when + duration * 0.01);
@@ -142,58 +164,3 @@ Sequence.prototype.getWave = function() {
   var imag = new Float32Array(real.length);
   return this.context.createPeriodicWave(real, imag);
 };
-
-/*
- * Functions to get pitches from input_fields
- */
-
-// get the string value of an input field
-function getInput(voice) {
-  var elem = document.getElementById(voice[0] + "_input");
-  return elem.value || elem.innerHTML;
-}
-
-// calculate pitch from letter, accidental, octave
-function calcPitch(l, a, o) {
-  var letters = {'C': 0, 'D': 2, 'E': 4, 'F': 5, 'G': 7, 'A': 9, 'B': 11};
-  var accidentals = {'bb': -2, 'b': -1, '': 0, '#': 1, '##': 2};
-  return letters[l] + accidentals[a] + (parseInt(o) - 1) * 12;
-}
-
-// get array of pitches from voice input
-function convertPitches(voice) {
-  var string = getInput(voice);
-  var array = string.split(',');
-  var pitches = [];
-
-  if (string == "")
-    return pitches;
-
-  for (var i = 0; i < array.length; i++) {
-    var letter = array[i][0];
-    array[i] = array[i].slice(1);
-    var number = /\d+/.exec(array[i])[0];
-    var accidental = array[i].replace(number, '');
-    pitches.push(calcPitch(letter, accidental, number));
-  }
-  return pitches;
-}
-
-// get hash of voiceparts: array of pitches
-function getMusic() {
-  var voices = ['soprano', 'alto', 'tenor', 'bass'];
-  var music = {};
-  for (var i = 0; i < voices.length; i++) {
-    music[voices[i]] = convertPitches(voices[i]);
-  }
-  return music;
-}
-
-/*
- * Main code for page
- */
-
-var audio = new AudioEnv();
-
-var play = document.getElementById("play");
-play.addEventListener('click', function(){audio.toggle(this);}, false);

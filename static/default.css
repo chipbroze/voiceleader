@@ -14,48 +14,10 @@ img {
   /* This eliminates 'padding' below the image */
   vertical-align: top;
 }
-img.clef {
-  position: absolute;
-  top: 20px;
-}
 article {
   background: white;
   border: 0px double red;
   padding: 1em;
-}
-a.staff {
-  width: 100%;
-  height: 7em;
-  display: block;
-  background: #DDDDDD;
-  background-image: url(images/staff_background.png);
-  background-repeat: repeat-x;
-  position: relative;
-}
-a.staff img {
-  position: relative;
-}
-a.staff img.clef {
-  width: 2.5em;
-  top: 9%;
-  left: .1em;
-  margin-right: 1em;
-}
-a.staff img.note {
-  width: 1.3em;
-  top: 42%;
-  left: .2em;
-  margin-right: 1.2em;
-}
-a.staff img.accidental {
-  width: 1.3em;
-  top: 36%;
-  left: 0em;
-  margin-right: 0;
-}
-a.staff img.ledger {
-  position: absolute;
-  z-index: 1;
 }
 div#login {
   background: 'white';
@@ -132,4 +94,72 @@ footer {
   font-size: .75em;
   text-align: center;
   margin: 0;
+}
+
+
+div#music-input {
+  width: 700px;
+  border: 1px solid black;
+  background: #ddd;
+  resize: horizontal;
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;
+}
+
+a.staff {
+  box-sizing: border-box;
+  height: 49px;
+  max-height: 49px; 
+  display: block;
+  background: #fff;
+  background-image: url(images/staff-background.png);
+  background-repeat: repeat-x;
+  position: relative;
+  margin: 60px 0 60px 0;
+  border-right: 5px double black;
+}
+a.staff img {
+  position: relative;
+  display: inline;
+  vertical-align: top;
+}
+a.staff div {
+  position: relative;
+  display: inline-block;
+  vertical-align: top;
+}
+a.staff img.clef {
+  width: 41px;
+}
+a.staff div.key-sig {
+  display: inline-block;
+  margin-right: 8px;
+  margin-left: 4px;
+}
+a.staff div.key-sig img {
+  width: 10px;
+}
+a.staff div.time-sig {
+  margin-right: 8px; 
+}
+a.staff div.time-sig p {
+  font-size: 24px;
+  font-family: 'impact';
+  display: block;
+  margin: 0;
+  padding: 0;
+  line-height: 1;
+}
+a.staff div.note {
+  z-index: 1;
+}
+a.staff div.note img {
+  width: 20px;
+}
+a.staff div.note img.accidental {
+  width: 10px;
+}
+a.staff img.ledger {
+  position: absolute;
 }
