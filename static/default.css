@@ -138,7 +138,8 @@ a.staff div.key-sig {
   margin-left: 4px;
 }
 a.staff div.key-sig img {
-  width: 10px;
+  width: 15px;
+  margin-left: -5px;
 }
 a.staff div.time-sig {
   margin-right: 8px; 
@@ -158,7 +159,7 @@ a.staff div.note img {
   width: 20px;
 }
 a.staff div.note img.accidental {
-  width: 10px;
+  width: 15px;
 }
 a.staff img.ledger {
   position: absolute;

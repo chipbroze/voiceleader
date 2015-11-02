@@ -5,7 +5,7 @@ music.addStaff('tenor', 'tenor');
 music.addStaff('bass', 'bass');
 
 makeClearButton('clear-music', 'music-input', music);
-makeKeySelector('key-select', music);
+makeKeySelector('key-select', 'music-input', music);
 makeTempoInput('tempo-input', music);
 drawMusic('music-input', music);
 makeMusicEditor('music-input', music);

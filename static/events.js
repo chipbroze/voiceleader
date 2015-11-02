@@ -4,7 +4,7 @@
 
 function makePlayButton(buttonId, editorId, music, audio) {
   var button = document.getElementById(buttonId);
-  var musicNode = document.getElementById(editorId);
+  var musNode = document.getElementById(editorId);
   button.addEventListener('click', function() {
     if (button.innerHTML === "Stop Music") {
       button.innerHTML = "Play Music";
@@ -17,31 +17,34 @@ function makePlayButton(buttonId, editorId, music, audio) {
         audio.stop();
         button.innerHTML = "Play Music";
       }, (endTime * 1000));
-      scrollMusic(music, musicNode, audio);
+      scrollMusic(music, musNode, audio);
     }
   });
 }
 
 function makeClearButton(buttonId, editorId, music) {
   var button = document.getElementById(buttonId);
-  var musicNode = document.getElementById(editorId);
+  var musNode = document.getElementById(editorId);
   button.addEventListener('click', function() {
-    clearNotes(musicNode);
+    clearNotes(musNode);
     music.clear();
   });
 }
 
-function makeKeySelector(elemId, musicObj) {
-  var elem = document.getElementById(elemId);
-  elem.addEventListener('change', function() {
-    musicObj.key = elem.value;
-    for (var i = 0; i < musicObj.staves.length; i++) {
-      var keySig = musicObj.staves[i].node.childNodes[1];
-      updateKeySig(keySig, musicObj.key);
-      for (var n = 0; n < musicObj.staves[i].notes.length; n++) {
-        var note = musicObj.staves[i].notes[n];
-        note.updateKey(musicObj.key);
-        drawNote(note, note.node, ['accidental']);
+function makeKeySelector(selectorId, editorId, music) {
+  var selector = document.getElementById(selectorId);
+  var musNode = document.getElementById(editorId);
+  selector.addEventListener('change', function() {
+    music.key = selector.value;
+    makeKeySig(music, musNode);
+    for (var i = 0, len = musNode.childNodes.length; i < len; i++) {
+      var staffNode = musNode.childNodes[i];
+      var noteNodes = staffNode.noteDiv.childNodes;
+      drawKeySig(staffNode.staff, staffNode);
+      for (var n = 0, lem = noteNodes.length; n < lem; n++) {
+        var node = noteNodes[n];
+        node.note.updateKey();
+        drawNote(node.note, node, ['accidental']);
       }
     }
   });
@@ -73,12 +76,15 @@ function moveNote(node, direction) {
     return false;
   }
   var letter = letters[(i + 7) % 7];
-  if (note.chromatic) {
-    var lettAcci = letter + note.accidental;
-  } else {
-    var lettAcci = inheritAccidental(letter, note.staff.music.key);
-  }
+  var lettAcci = inheritAccidental(letter, note.staff.music.key);
   note.updateName(lettAcci + octave);
+  var accis = ['bb', 'b', '', '#', 'x'];
+  var defaultAcci = note.accidental;
+  if (note.chromatic) {
+    changeAccidental(node, note.chromatic);
+    var currAcci = note.accidental;
+    note.chromatic = accis.indexOf(currAcci) - accis.indexOf(defaultAcci);
+  }
   drawNote(note, node, ['pitch']);
 }
 
@@ -109,16 +115,16 @@ function inheritAccidental(letter, key) {
 
 function switchNote(node, direction) {
   var active = direction === 1 ? node.nextSibling : node.previousSibling;
-  if (active === null) {
+  if (active === null && direction === 1) {
     return addNewNote(node.parentNode);
-  } else if (active.className === 'time-sig') {
+  } else if (active === null) {
     return false;
   } else {
     return makeActive(active);
   }
-  var div = active.parentNode.parentNode;
+  var div = active.parentNode.parentNode.parentNode;
   var center = div.offsetWidth / 2 + div.scrollLeft;
-  var edge = active.offsetLeft + active.offsetWidth / 2;
+  var edge = active.offsetLeft + active.parentNode.offsetLeft + active.offsetWidth / 2;
   if (edge - center > div.offsetWidth / 3) {
     div.scrollLeft += edge - center - div.offsetWidth / 3;
   } else if (edge - center < div.offsetWidth / -3) {
@@ -138,49 +144,56 @@ function changeNoteType(node, direction) {
   var i = types.indexOf(noteObj.type);
   if (types[i + direction] === undefined) return false;
   noteObj.type = types[i + direction];
-  centerDiv(node);
+  adjustScroll(node);
   drawNote(noteObj, node, ['type']);
 }
 
-function addNewNote(staffNode, where) {
+function addNewNote(noteDiv, where) {
   where = where || null;
-  if (activeNode && activeNode.parentNode === staffNode) {
+  if (activeNode && activeNode.parentNode === noteDiv) {
     var a = activeNode.note;
   } else {
     var a = {};
   }
-  var staff = staffNode.staff;
+  var staff = noteDiv.parentNode.staff;
   var note = staff.addNote(a.name, a.type, a.rest, where, a.exp);
-  var node = createNote(note, staffNode);
+  var node = createNote(note, noteDiv);
   return makeActive(node);
 }
 
 function deleteNote(noteNode) {
-  if (noteNode.previousSibling.className === 'note') {
+  if (noteNode.previousSibling) {
     makeActive(noteNode.previousSibling);
   } else if (noteNode.nextSibling) {
     makeActive(noteNode.nextSibling);
   } else {
-    makeActive(noteNode.previousSibling); 
+    deactivate(noteNode);
+    activeNode = null;
   }
   var index = noteNode.note.staff.notes.indexOf(noteNode.note);
   if (index > -1) {
     noteNode.note.staff.notes.splice(index, 1);
   }
-  resetMusicWidth(noteNode.parentNode.parentNode);
+  resetMusicWidth(noteNode.parentNode.parentNode.parentNode);
   noteNode.parentNode.removeChild(noteNode);
 }
 
 function changeAccidental(node, direction) {
   var note = node.note;
-  var symbols = ['b', '', '#'];
+  var symbols = ['bb', 'b', '', '#', 'x'];
   var i = symbols.indexOf(note.accidental);
-  var newAcci = symbols[i + direction];
-  if (newAcci === undefined) {
+  var j = i + direction;
+  j = j > 4 ? 4 : j < 0 ? 0 : j;
+  if (i === j) {
     return false;
   }
+  var newAcci = symbols[j];
   note.updateName(note.letter + newAcci + note.octave);
-  note.chromatic = note.isDiatonic() ? false : true;
+  if (note.isDiatonic()) {
+    note.chromatic = 0;
+  } else {
+    note.chromatic += j - i;
+  }
   drawNote(note, node, ['accidental']);
   return true;
 }
@@ -247,6 +260,8 @@ function makeMusicEditor(elemId, musicObj) {
       if (target.parentNode.className === 'note')
         target = target.parentNode;
       else if (target.className === 'staff')
+        addNewNote(target.noteDiv);
+      else if (target.className === 'noteDiv')
         addNewNote(target);
       else
         target = null;

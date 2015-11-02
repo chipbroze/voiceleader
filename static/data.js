@@ -103,7 +103,7 @@ function Note(name, type, rest, staff, exps) {
   this.staff = staff;
   this.exp = exps || [];
   this.parseName();
-  this.chromatic = false;
+  this.chromatic = 0;
 }
 
 // get array of note's pitch value and beat length
@@ -135,33 +135,35 @@ Note.prototype.updateName = function(newName) {
 }
 
 // update note name to match key signature
-Note.prototype.updateKey = function(key) {
+Note.prototype.updateKey = function() {
+  var key = this.staff.music.key;
   if (!this.chromatic) {
     this.updateName(inheritAccidental(this.letter, key) + this.octave);
   }
 }
 
 // check if note fits in key signature
-Note.prototype.isDiatonic = function() {                                                     
-  var keys = {                                                                  
-    'C' : ['b', 0],                                                             
-    'F' : ['b', 1],  'G' : ['#', 1],                                            
-    'Bb': ['b', 2],  'D' : ['#', 2],                                            
-    'Eb': ['b', 3],  'A' : ['#', 3],                                            
-    'Ab': ['b', 4],  'E' : ['#', 4],                                            
-    'Db': ['b', 5],  'B' : ['#', 5],                                            
-    'Gb': ['b', 6],  'F#': ['#', 6],                                            
-    'Cb': ['b', 7],  'C#': ['#', 7]                                             
-  };                                                                            
-  var myKey = keys[this.staff.music.key];                                       
-  if (this.accidental && myKey[0] !== this.accidental) {                        
-    return false;                                                               
-  }                                                                             
-  var sets = {                                                                  
-    'b': ['B', 'E', 'A', 'D', 'G', 'C', 'F'],                                   
-    '#': ['F', 'C', 'G', 'D', 'A', 'E', 'B']                                    
-  };                                                                            
-  var mySet = sets[myKey[0]].slice(0, myKey[1]);                                
-  var bool = mySet.indexOf(this.letter) > -1 ? true : false;                    
-  return this.accidental ? bool : !bool;                                        
-}    
+Note.prototype.isDiatonic = function() { 
+  var keys = {
+    'C' : ['b', 0],
+    'F' : ['b', 1],  'G' : ['#', 1],
+    'Bb': ['b', 2],  'D' : ['#', 2],
+    'Eb': ['b', 3],  'A' : ['#', 3],
+    'Ab': ['b', 4],  'E' : ['#', 4],
+    'Db': ['b', 5],  'B' : ['#', 5],
+    'Gb': ['b', 6],  'F#': ['#', 6],
+    'Cb': ['b', 7],  'C#': ['#', 7]
+  };
+  var myKey = keys[this.staff.music.key];
+  if (this.accidental && myKey[0] !== this.accidental) {
+    return false;
+  }
+  var sets = {
+    'b': ['B', 'E', 'A', 'D', 'G', 'C', 'F'],
+    '#': ['F', 'C', 'G', 'D', 'A', 'E', 'B']
+  };
+  var mySet = sets[myKey[0]].slice(0, myKey[1]);
+  var bool = mySet.indexOf(this.letter) > -1 ? true : false;
+  return this.accidental ? bool : !bool;
+}
+
