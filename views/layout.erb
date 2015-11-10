@@ -18,7 +18,7 @@
   <div id="login">
   <% if session[:username] %>
     <p>Signed in: <%= session[:username].upcase %>
-       <a href="/chorales">My Music</a> 
+       <a href="/scores">My Scores</a> 
        <a href="/logout">Logout</a></p>
   <% else %>
     <form id="login" action="/login" method="POST">

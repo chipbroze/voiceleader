@@ -3,17 +3,19 @@
  */
 
 // create a new Music object
-function Music(tempo, key, timeSig) {
+function Music(name, tempo, key, timeSig) {
+  this.name = name || 'default name';
   this.tempo = tempo || 120;
   this.key = key || 'C';
-  this.timeSig = timeSig || [4, 4];
+  this.timeSig = timeSig || '4/4';
   this.staves = [];
 }
 
 // create and add a Staff object with params
 Music.prototype.addStaff = function(voice, clef) {
   var staff = new Staff(voice, clef, this);
-  return this.staves.push(staff);
+  this.staves.push(staff);
+  return staff;
 };
 
 // get object of all staves and note data, for audio processessing 
@@ -58,7 +60,7 @@ function Staff(voice, clef, music) {
 // create and add a Note object to this staff
 // establish default note values based on clef
 // if no name given, align accidental with key
-Staff.prototype.addNote = function(name, type, rest, where, exps) {
+Staff.prototype.addNote = function(name, type, rest, exps, chromatic, where) {
   var defaultNote = {
     treble: ['B', '4'],
     tenor: ['B', '3'],
@@ -67,7 +69,7 @@ Staff.prototype.addNote = function(name, type, rest, where, exps) {
   var def = defaultNote[this.clef];
   name = name || inheritAccidental(def[0], this.music.key) + def[1];
   where = where || this.notes.length;
-  var note = new Note(name, type, rest, this, exps);
+  var note = new Note(name, type, rest, this, exps, chromatic);
   this.notes.splice(where, 0, note);
   return note;
 };
@@ -96,20 +98,20 @@ Staff.prototype.getBeats = function() {
 // create a new Note object
 // 'rest' is a bool indicating if note is actually a rest
 // 'exps' contains expression values (staccato, tenuto, etc)
-function Note(name, type, rest, staff, exps) {
+function Note(name, type, rest, staff, exps, chromatic) {
   this.name = name || 'C4';
   this.type = type || 'quarter';
   this.rest = rest || false;
   this.staff = staff;
   this.exp = exps || [];
+  this.chromatic = chromatic || 0;
   this.parseName();
-  this.chromatic = 0;
 }
 
 // get array of note's pitch value and beat length
 Note.prototype.getData = function() {
   var letterValues = {C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11};
-  var accidentalValues = {'bb': -2, 'b': -1, '': 0, '#': 1, '##': 2};
+  var accidentalValues = {'bb': -2, 'b': -1, '': 0, '#': 1, 'x': 2};
   var pitch = letterValues[this.letter] + accidentalValues[this.accidental] +
     (this.octave - 1) * 12;
   if (this.rest) pitch = null;
@@ -167,3 +169,77 @@ Note.prototype.isDiatonic = function() {
   return this.accidental ? bool : !bool;
 }
 
+/**
+ * JSON-ify
+ */
+
+Music.prototype.JSONify = function() {
+  var obj = {
+    name: this.name,
+    tempo: this.tempo,
+    key: this.key,
+    timeSig: this.timeSig,
+    staves: this.staves.map(function(staff) {
+      return staff.JSONify();
+    })
+  };
+  return JSON.stringify(obj);
+};
+
+Staff.prototype.JSONify = function() {
+  var obj = {
+    voice: this.voice,
+    clef: this.clef,
+    notes: this.notes.map(function(note) {
+      return note.JSONify();
+    })
+  };
+  return obj;
+};
+
+Note.prototype.JSONify = function() {
+  var obj = {
+    name: this.name,
+    type: this.type,
+    rest: this.rest,
+    exp: this.exp.join(','),
+    chromatic: this.chromatic
+  };
+  return obj;
+};
+
+/**
+ * MUSIC GENERATION
+ */
+
+Music.prototype.genMelody = function() {
+  var lines = generateMusic();
+  var octaves = {C: 4, D: 4, E: 4, F: 4, G: 5, A: 5, B: 5};
+  for (var i = 0, len = lines.length; i < len; i++) {
+    if (!lines[i]) {
+      return false;
+    }
+    var staff = this.staves[i];
+    var octave = octaves[this.key.charAt(0)];
+    if (staff.clef !== 'treble') {
+      octave = parseInt(octave) - 1;
+    }
+    var tonic = this.key + octave;
+    for (var n = 0, lem = lines[i].length; n < lem; n++) {
+      noteName = this.intervalNote(tonic, lines[i][n] - 1);
+      this.staves[i].addNote(noteName);
+    }
+  }
+}
+
+Music.prototype.intervalNote = function(startName, interval) {  
+  var letters = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+  var key = this.key;
+  var index = letters.indexOf(startName.charAt(0));
+  var letter = letters[(index + interval + 70) % 7];
+  var lettAcci = inheritAccidental(letter, key);
+  var oldOct = /\d+/.exec(startName)[0];
+  var newIndex = letters.indexOf(letter);
+  var octave = parseInt(oldOct) + Math.ceil((interval - (6 - index)) / 7);
+  return lettAcci + octave;
+}

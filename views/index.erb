@@ -14,9 +14,10 @@
 
 <button id="play-music">Play Music</button>
 <button id="clear-music">Clear</button>
+<button id="melody-gen">Melody Generator</button>
 
 <br><br>
-<form id="form" action="/results" method="POST">
+<form id="form" action="/scores" method="POST">
 
 <fieldset>
 <legend>Music Settings</legend>
@@ -49,7 +50,10 @@
     value="C4,C4,C4,E4,E4,F4,E4"><br>
   <input id="b_input" type="hidden" name="bass" 
     value="C3,F2,C3,B2,A2,G2,C3">
+
+  <input type="submit" value="Submit">
 </fieldset>
+<!-- Move analysis to separate page function!!
 <fieldset>
   <legend>Check for Errors</legend>
   <div class="float">
@@ -128,10 +132,15 @@
   <dd>Leading Tones resolve upward in outer voices</dd>
 </dl>
 </div>
+-->
 
 <!-- <script language="JavaScript" type="text/javascript" src="/scripts.js"></script> -->
 <script src="/data.js"></script>
 <script src="/render.js"></script>
 <script src="/playback.js"></script>
 <script src="/events.js"></script>
+<script src="/melody.js"></script>
 <script src="/main.js"></script>
+<script>                                                                        
+  buildPage();                                                
+</script>  

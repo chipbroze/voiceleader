@@ -1,0 +1,8 @@
+<h1><%= session[:username] %>'s Compositions</h1>
+<hr>
+
+<% @user.chorales.each do |chorale| %>
+  <a href="scores/<%=chorale.id%>">
+    <h2 id="score-<%=chorale.id%>"><%=chorale.name%></h2>
+  </a><br>
+<% end %>

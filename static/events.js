@@ -63,6 +63,57 @@ function makeTempoInput(elemId, musicObj) {
   });
 }
 
+function makeFormSubmit(formId, musicObj) {
+  var form = document.getElementById(formId);
+  var input = document.createElement('input');
+  input.setAttribute('type', 'hidden');
+  input.setAttribute('name', 'JSON');
+  input.style.display = 'none';
+  form.appendChild(input);
+  form.addEventListener('submit', function() {
+    input.value = musicObj.JSONify();
+    return true;
+  });
+}
+
+function importMusic(json) {
+  if (json === undefined) {
+    var music = new Music('default name', 60, 'C', '4/4');
+    music.addStaff('soprano', 'treble');
+    music.addStaff('alto', 'treble');
+    music.addStaff('tenor', 'tenor');
+    music.addStaff('bass', 'bass');
+    return music;
+  } else {
+    var obj = json;
+    var music = new Music(obj['name'], obj['tempo'], obj['key'], obj['timeSig']);
+    for (var i = 0, len = obj['staves'].length; i < len; i++) {
+      var sObj = obj['staves'][i];
+      music.addStaff(sObj['voice'], sObj['clef']);
+      var staff = music.staves[i];
+      for (var j = 0, lem = sObj['notes'].length; j < lem; j++) {
+        var nObj = sObj['notes'][j];
+        staff.addNote(nObj['name'], nObj['type'], nObj['rest'], 
+                      nObj['exp'], nObj['chromatic']);
+      }
+    }
+    return music;
+  }
+}
+
+function makeMelodyButton(buttonId, editorId, music) {
+  var button = document.getElementById(buttonId);
+  var editor = document.getElementById(editorId);
+  var staff = music.staves[0];
+  var noteDiv = editor.firstChild.noteDiv;
+  button.addEventListener('click', function() {
+    clearNotes(editor);
+    music.clear();
+    music.genMelody();
+    drawMusic(editorId, music);
+  });
+}
+
 /*
  * MUSIC EDITOR
  */
@@ -142,7 +193,9 @@ function changeNoteType(node, direction) {
   var noteObj = node.note;
   var types = ['quarter', 'half', 'whole'];
   var i = types.indexOf(noteObj.type);
-  if (types[i + direction] === undefined) return false;
+  if (types[i + direction] === undefined) {
+    return false;
+  }
   noteObj.type = types[i + direction];
   adjustScroll(node);
   drawNote(noteObj, node, ['type']);
@@ -156,7 +209,7 @@ function addNewNote(noteDiv, where) {
     var a = {};
   }
   var staff = noteDiv.parentNode.staff;
-  var note = staff.addNote(a.name, a.type, a.rest, where, a.exp);
+  var note = staff.addNote(a.name, a.type, a.rest, a.exp, a.chromatic, where);
   var node = createNote(note, noteDiv);
   return makeActive(node);
 }

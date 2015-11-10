@@ -39,6 +39,7 @@ PLATFORMS
 DEPENDENCIES
   activerecord
   bcrypt
+  json
   pg
   sinatra
 

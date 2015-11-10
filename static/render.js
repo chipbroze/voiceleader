@@ -2,7 +2,7 @@
 // CONSTANTS & GLOBAL VARIABLES //
 //////////////////////////////////
 
-var IMAGE_DIR = 'images/'; // path for image sources
+var IMAGE_DIR = '/images/'; // path for image sources
 var activeNode = null; // attach this to musNode??
 var SPACE = 6;             // distance from line to space in staff
 var BEAT = 40;             // width of div.note class
@@ -86,7 +86,7 @@ function makeKeySig(music, musNode) {
  * Make time signature <div> for cloning.
  */
 function makeTimeSig(music, musNode) {
-  var tSig = music.timeSig;
+  var tSig = music.timeSig.split('/');
   var innards = '<p>' + tSig[0] + '</p><p>' + tSig[1] + '</p>';
   musNode.timeSig.innerHTML = innards;
   return musNode.timeSig;
@@ -252,7 +252,7 @@ function drawStaff(staff, staffNode) {
  */
 function drawClef(staff, staffNode) {
   var image = 'clef-' + staff.clef + '.png';
-  staffNode.clef.setAttribute('src', 'images/' + image);
+  staffNode.clef.setAttribute('src', IMAGE_DIR + image);
   return staffNode.clef;
 }
 
@@ -402,7 +402,7 @@ function drawLedgers(note, node) {
   while (currLedgers < howMany) {
     var ledger = document.createElement('img');
     var height = (currLedgers * 2 * increment);
-    ledger.setAttribute('src', 'images/ledger-line.png');
+    ledger.setAttribute('src', IMAGE_DIR + 'ledger-line.png');
     ledger.setAttribute('class', 'ledger');
     ledger.style.top = TOP.ledger + height + 'px';
     node.ledgers.appendChild(ledger);

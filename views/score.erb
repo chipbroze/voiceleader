@@ -1,0 +1,51 @@
+<h1><%= session[:username] %>'s Chorale: <%=@chorale.name%></h1>
+<hr>
+
+<h2 id="chorale-name" contenteditable="true"><%=@chorale.name%></h2>
+
+<!-- div below must be written on one line, to avoid extra childnodes -->
+<div id="music-input"></div>
+
+<br>
+
+<button id="play-music">Play Music</button>
+<button id="clear-music">Clear</button>
+
+<br><br>
+<form id="form" action="/scores" method="POST">
+
+<fieldset>
+<legend>Music Settings</legend>
+  <select id="key-select" name="key">                                                           
+  <option value="C">C Major / a minor</option>                          
+  <option value="G">G Major / e minor</option>                          
+  <option value="D">D Major / b minor</option>                          
+  <option value="A">A Major / f# minor</option>                         
+  <option value="E">E Major / c# minor</option>                         
+  <option value="B">B Major / g# minor</option>                        
+  <option value="F#">F# Major / d# minor</option>                        
+  <option value="C#">C# Major / a# minor</option>                        
+  <option value="F">F Major / d minor</option>                           
+  <option value="Bb">Bb Major / g minor</option>                         
+  <option value="Eb">Eb Major / c minor</option>                          
+  <option value="Ab">Ab Major / f minor</option>                          
+  <option value="Db">Db Major / b-flat minor</option>                     
+  <option value="Gb">Gb Major / e-flat minor</option>                     
+  <option value="Cb">Cb Major / a-flat minor</option>                    
+  </select>
+
+  <label for="tempo-input">Tempo:</label>
+  <input id="tempo-input" type="text" size="8" name="tempo" value="60" />
+
+  <input type="submit" value="Submit">
+</fieldset>
+
+<script src="/data.js"></script>
+<script src="/render.js"></script>
+<script src="/playback.js"></script>
+<script src="/events.js"></script>
+<script src="/main.js"></script>
+<script>
+  jsonStr = <%=@chorale.json%>;
+  buildPage(jsonStr);
+</script>
