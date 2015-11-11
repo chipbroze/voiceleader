@@ -214,7 +214,7 @@ Note.prototype.JSONify = function() {
 
 Music.prototype.genMelody = function() {
   var lines = generateMusic();
-  var octaves = {C: 4, D: 4, E: 4, F: 4, G: 5, A: 5, B: 5};
+  var octaves = {C: 5, D: 5, E: 4, F: 4, G: 4, A: 4, B: 4};
   for (var i = 0, len = lines.length; i < len; i++) {
     if (!lines[i]) {
       return false;

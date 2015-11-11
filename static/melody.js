@@ -3,7 +3,7 @@ function Melody() {
   this.start = randEl([1, 3, 5, 8]);
   this.end = 1;
   var dist = Math.abs(this.end - this.start);
-  this.length = Math.max(random(5, 13), dist + 1);
+  this.length = Math.max(random(5, 8), dist + 1);
   this.lastInt = 0;
   this.leaps = 1;
   this.justLeapt = false;
@@ -19,14 +19,14 @@ function Melody() {
 // Generate the melody's notes
 Melody.prototype.generate = function() {
   while (this.notes.length < this.length) {
-    console.log(this.notes);
+    console.log('Saved State: ' + this.notes);
     var state = this.saveState();
     var next = state.possibles.shift();
     this.addNote(next);
 
     // Backtrack if melody can't be completed within guidelines
     while (this.invalid()) {
-      console.log('INVALID');
+      console.log('--invalid--: ' + this.notes);
       this.deleteNote();
       this.loadState(state);
       next = state.possibles.shift();
@@ -45,15 +45,15 @@ Melody.prototype.generate = function() {
       this.addNote(next);
     }
   }
-  if (this.notes.last() === this.notes[this.length - 2]) {
-    if (this.notes[this.length - 3] > this.notes.last()) {
-      this.notes[this.length - 2] -= 1;
-    }
-    if (this.notes[this.length - 3] < this.notes.last()) {
-      this.notes[this.length - 2] += 1;
-    }
-  }
-
+  //if (this.notes.last() === this.notes[this.length - 2]) {
+  //  if (this.notes[this.length - 3] > this.notes.last()) {
+  //    this.notes[this.length - 2] -= 1;
+  //  }
+  //  if (this.notes[this.length - 3] < this.notes.last()) {
+  //    this.notes[this.length - 2] += 1;
+  //  }
+  //}
+  console.log('Final State: ' + this.notes);
   return this.notes;
 }
 
@@ -69,14 +69,17 @@ Melody.prototype.getPossibles = function() {
   var steps = [];
   steps.push(stepwise(note));
   steps.push(stepwise(note));
-  if (this.leaps > 0) {
+  if (this.leaps > 0 || this.stepsLeft < 3) {
+    steps.push(leapwise(note));
+  }
+  if (this.leaps > 0 && this.notes.length > 2) {
     steps.push(leapwise(note));
   }
   steps.shuffle();
   steps = [].concat.apply([], steps); 
-  if (this.stepsLeft() < 2) {
-    steps.unshift(note);
-  }
+  //if (this.stepsLeft() < 2) {
+  //  steps.unshift(note);
+  //}
   return steps;
 }
 function stepwise(note) {
@@ -85,13 +88,22 @@ function stepwise(note) {
 function leapwise(note) {
   switch((note + 700) % 7) {
   case 1:
-    return [note + 2, note - 3].shuffle();
+    return [note + 2, note - 3, note -2, note + 4, note + 5].shuffle();
     break;
   case 3:
     return [note + 2, note - 2].shuffle();
     break;
   case 5:
     return [note + 3, note - 2].shuffle();
+    break;
+  case 2:
+    return [note + 2, note - 2].shuffle();
+    break;
+  case 4:
+    return [note + 2, note - 2].shuffle();
+    break;
+  case 0:
+    return [note + 2];
     break;
   default:
     return [];
@@ -198,160 +210,235 @@ Melody.prototype.checkSingleValley = function(note) {
   return true;
 }
 
-// Harmony contructor
+// Harmony constructor
 function Harmony(melody) {
+  this.type = 'harmony';
   this.melody = melody;
-  this.start = randEl([1, 3, 5]);
+  this.start = 1;
   this.notes = [this.start];
-  this.possibles = [];
-  this.unison = true;
+  this.states = [];
 }
 
+// Filler harmony constructor
+Harmony.prototype.makeFiller = function(harmony) {
+  this.type = 'filler';
+  this.harmony = harmony;
+  this.start = this.getFillerStart();
+  this.notes = [this.start];
+}
+Harmony.prototype.getFillerStart = function() {
+  var starts = [];
+  switch(this.melody.start) {
+  case 1:
+    starts.push(-2, -4);
+    break;
+  case 3:
+    starts.push(1, -2);
+    break;
+  case 5:
+    starts.push(3, 1);
+    break;
+  case 8:
+    starts.push(5, 3);
+    break;
+  default:
+    starts.push(1, 3);
+  }
+  return randEl(starts);
+}
+
+// Generate the harmony's notes
 Harmony.prototype.generate = function() {
-  while (this.notes.length < this.melody.notes.length) {
-    var next = this.getNextNote().shift();
-    this.notes.push(next);
-    while (this.invalid()) {
-      this.notes.pop();
-      next = this.possibles.shift();
-      if (next === undefined) {
-        this.notes.pop();
-        if (this.notes.length < 1) {
-          return null;
+  while (this.notes.length < this.melody.length) {
+    var state = this.saveState();
+    var next = state.possibles.shift();
+    // Get new next note if current choice won't work
+    while (this.invalid(next)) {
+      next = state.possibles.shift();
+
+      // Backtrack if no more 'possible' notes from current state
+      while (next === undefined) {
+        if (this.states.length <= 1) {
+          return [];
         }
-        this.unison = false;
-        next = this.getNextNote().shift();
+        this.states.pop();
+        this.notes.pop();
+        state = this.states.last();
+        this.loadState(state);
+        next = state.possibles.shift();
       }
-      this.notes.push(next);
     }
+    this.notes.push(next);
   }
   return this.notes;
-};
+}
 
-Harmony.prototype.getNextNote = function() {
+
+// Save and Load states of the harmony
+Harmony.prototype.saveState = function() {
+  var state = {};
+  state['possibles'] = this.getPossibles();
+  copyProps(this, state);
+  this.states.push(state);
+  return state;
+}
+Harmony.prototype.loadState = function(state) {
+  copyProps(state, this);
+}
+
+// Get possible notes
+Harmony.prototype.getPossibles = function() {
+  if (this.type === 'filler') {
+    return this.fillerGetPossibles();
+  }
   var currNote = this.notes.last();
-  return this.possibles = [currNote + 1, currNote - 1, currNote].shuffle();
+  var repeat = currNote;
+  var stepwise = [currNote + 1, currNote - 1].shuffle();
+  var circleOfFifths = [currNote + 3, currNote - 4].shuffle();
+  var mediants = [currNote + 2, currNote - 2].shuffle();
+  var possibles = [repeat, repeat, stepwise, stepwise, stepwise, circleOfFifths, mediants].shuffle();
+  possibles = [].concat.apply([], possibles); 
+
+  if ((currNote + 70) % 7 === 0) {
+    possibles.unshift(currNote + 1, currNote - 1);
+  }
+
+  return possibles;
 };
 
-Harmony.prototype.invalid = function() {
-  var note = this.notes.last();
-  var index = this.notes.length - 1;
-  var interval = this.melody.notes[index] - note;
-  interval = (Math.abs(interval) + 70) % 7;
-  console.log('Interval at index ' + index + ': ' + (interval + 1));
-  if (((note + 70) % 7 === 4 && (this.melody.notes[index] + 70) % 7 === 0) ||
-      ((note + 70) % 7 === 0 && (this.melody.notes[index] + 70) % 7 === 4)) {
+Harmony.prototype.invalid = function(note) {
+  if (this.type === 'filler') {
+    return this.fillerInvalid(note);
+  }
+  var scale = (note + 70) % 7;
+  var lastScale = (this.notes.last() + 70) % 7;
+  var melScale = (this.melody.notes[index] + 70) % 7;
+  var index = this.notes.length;
+  var interval = this.melody.notes[index] + 70 - note;
+  interval = (Math.abs(interval) + 700) % 7;
+  var prevInt = this.melody.notes[index - 1] + 70 - this.notes.last();
+  prevInt = (Math.abs(prevInt) + 700) % 7;
+  var ultimate = this.notes.length === this.melody.notes.length - 1;
+  var penultimate = this.notes.length === this.melody.notes.length - 2;
+  var antiPenultimate = this.notes.length === this.melody.notes.length - 3;
+  if ((scale === 0 && lastScale === 4) || (scale === 4 && lastScale === 0)) {
     return true;
   }
-  if (interval === 4 &&
-      Math.abs(this.notes[index - 1] - this.melody.notes[index - 1]) === 4) {
+  if (ultimate && scale !== 1) {
     return true;
-  }
-  if ([1, -1, 6, -6, 3].indexOf(interval) > -1) { 
-    return true;
-  } else if (interval === 0) {
-    if (this.unison) {
+  } else if (penultimate && [5, 0, 2].indexOf(scale) === -1) {
+      return true;
+  } else {
+    if ((scale === 4 && melScale === 0) ||
+        (scale === 0 && melScale === 4)) {
+      return true;
+    } else if (interval === 4 && prevInt === 4) {
+      return true;
+    } else if (interval === 0 && prevInt === 0) {
+      return true;
+    } else if ([1, -1, 6, -6, 3].indexOf(interval) > -1) { 
       return true;
     } else {
-      this.unison = true;
       return false;
+    }
+  }
+}
+
+Harmony.prototype.fillerGetPossibles = function() {
+  var currNote = this.notes.last();
+  var repeat = [currNote];
+  var stepwise = [currNote + 1, currNote - 1].shuffle();
+  var thirds = [currNote + 2, currNote - 2].shuffle();
+  var fourths = [currNote + 3, currNote - 3].shuffle();
+  var possibles = [repeat, repeat, repeat, repeat, stepwise, stepwise, stepwise, thirds, thirds, fourths].shuffle();
+  return [].concat.apply([], possibles);
+}
+Harmony.prototype.fillerInvalid = function(next) {
+  var scale = (next + 70) % 7;
+  var last = this.notes.last();
+  var lastScale = (last + 70) % 7;
+  var mel = this.melody.notes[this.notes.length];
+  var melLast = this.melody.notes[this.notes.length - 1];
+  var melLastScale = (melLast + 70) % 7;
+  var melInt = (mel - next + 70) % 7;
+  var lastMelInt = (melLast - last + 70) % 7;
+  var har = this.harmony.notes[this.notes.length] - 7;
+  var harLast = this.harmony.notes[this.notes.length - 1] - 7;
+  var harLastScale = (harLast + 70) % 7;
+  var harInt = (next - har + 70) % 7;
+  var lastHarInt = (last - harLast + 70) % 7;
+  var melScale = (mel + 70) % 7;
+  var harScale = (har + 70) % 7;
+  var low = mel < har ? melScale : harScale;
+  var hi = mel < har ? harScale : melScale;
+  var interval = (mel - har + 70) % 7;
+
+  if (next > mel) {
+    return true;
+  }
+  if (next < har) {
+    return true;
+  }
+  if (this.notes.length === this.melody.length - 1) {
+    if ([1, 3, 5].indexOf(scale) < 0) {
+      return true;
     }
   } else {
-    this.unison = false;
-    if (this.notes.length === this.melody.notes.length && 
-        [1, 3, 5].indexOf((note + 70) % 7) === -1) {
+    if (scale === melScale && lastScale === melLastScale) {
       return true;
-    } else {
-      return false;
     }
-  }
-}
-
-// Third Voice
-function Filler(melody, harmony) {
-  console.log('mel test: ' + melody.notes);
-  console.log('har test: ' + harmony.notes);
-  this.melody = melody;
-  this.harmony = harmony;
-  this.starts = [1, 3, 5];
-  var melStart = this.starts.indexOf(melody.start);
-  if (melStart > -1) {
-    this.starts.splice(melStart, 1);
-  }
-  var harStart = this.starts.indexOf(harmony.start);
-  if (harStart > -1) {
-    this.starts.splice(harStart, 1);
-  }
-  this.start = randEl(this.starts);
-  this.notes = [this.start];
-}
-Filler.prototype.generate = function() {
-  while (this.notes.length < this.melody.length) {
-    this.possibles = this.getPossibles();
-    console.log('Index: ' + this.notes.length);
-    console.log('Poss: ' + this.possibles);
-    var next = this.possibles.shift();
-    while (this.invalid(next)) {
-      var next = this.possibles.shift();
-      if (next === undefined) {
-        return null;
-      }
+    if (scale === harScale && lastScale === harLastScale) {
+      return true;
     }
-    this.notes.push(next);
-  }
-  return this.notes;
-}
-
-Filler.prototype.getPossibles = function() {
-  var mel = this.melody.notes[this.notes.length];
-  var har = this.harmony.notes[this.notes.length];
-  var low = mel > har ? har : mel;
-  var hi  = mel < har ? har : mel;
-  var interval = (Math.abs(mel - har) + 70) % 7;
-  var poss = [];
-  if (interval === 0) {
-    poss.push(mel + 2, mel - 2, mel + 4, mel - 4, mel);
-  }
-  if (interval === 4) {
-    poss.push(low + 2, low, hi);
-  }
-  if (interval === 5) {
-    poss.push(low + 2, low + 3, low, hi);
-  }
-  if (interval === 2) {
-    poss.push(low - 2, hi + 2, low, hi);
-  }
-  poss = poss.map(function(el) {
-    return (el + 70) % 7;
-  });
-  var currNote = this.notes.last();
-  var moves = [currNote, currNote + 1, currNote - 1];
-  var results = moves.filter(function(el) {
-    var modded = (el + 70) % 7;
-    for (var i = 0, len = poss.length; i < len; i++) {
-      if (modded === poss[i]) {
-        return true;
-      }
+    if (scale === 0 && (melScale === 4 || harScale === 4)) {
+      return true;
     }
-    return false;
-  });
-  return results;
-}
-
-Filler.prototype.invalid = function(next) {
-  if (this.notes.length === this.melody.length - 1) {
-    var scale = (next + 70) % 7;
-    if ([1, 3, 5].indexOf(scale) < 0) {
+    if (scale === 4 && (melScale === 0 || harScale === 0)) {
+      return true;
+    }
+    if (melInt === 4 && lastMelInt === 4) {
+      return true;
+    }
+    if (harInt === 4 && lastHarInt === 4) {
+      return true;
+    }
+    if (next < harLast) {
+      return true;
+    }
+    if (next > melLast) {
       return true;
     }
   }
   if (this.notes.length === this.melody.length - 2) {
-    var scale = (next + 70) % 7;
-    if ([-2, 0, 2, 4, 5, 7, 9, 11, 12, 14].indexOf(scale) < 0) {
+    if ([0, 2, 4, 5].indexOf(scale) < 0) {
       return true;
     }
   }
-  return false;
+  var poss = [];
+  switch(interval) {
+  case 0:
+    poss.push(mel + 2, mel - 2, mel + 4, mel - 4, mel);
+    break;
+  case 4:
+    poss.push(low + 2, low, hi);
+    break;
+  case 5:
+    poss.push(low + 2, low, hi);
+    break;
+  case 2:
+    poss.push(low - 2, hi + 2, low, hi);
+    break;
+  default:
+    poss.push(0, 1, 2, 3, 4, 5, 6);
+  }
+  poss = poss.map(function(el) {
+    return (el + 70) % 7;
+  });
+  if (poss.indexOf(scale) < 0) {
+    return true;
+  } else {
+    return false;
+  }
 }
 
 // utility
@@ -360,8 +447,6 @@ function test() {
   var melNotes = mel.generate();
   var har = new Harmony(mel);
   var harNotes = har.generate();
-  console.log(melNotes);
-  console.log(harNotes);
   return true;
 }
 function generateMusic() {
@@ -369,13 +454,10 @@ function generateMusic() {
   var melNotes = mel.generate();
   var har = new Harmony(mel);
   var harNotes = har.generate();
-  harNotes.pop();
-  harNotes.pop();
-  harNotes.push(5);
-  harNotes.push(1);
-  var phil = new Filler(mel, har);
+  var phil = new Harmony(mel);
+  phil.makeFiller(har);
   var philNotes = phil.generate();
-  return [melNotes, melNotes, harNotes];
+  return [melNotes, philNotes, harNotes];
 }
 
 function arrRange(x, y) {
