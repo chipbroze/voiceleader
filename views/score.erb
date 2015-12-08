@@ -1,41 +1,64 @@
-<h1><%= session[:username] %>'s Chorale: <%=@chorale.name%></h1>
-<hr>
+<h1><%= session[:username] %>'s Score: <%=score.title%></h1>
+<p><%= score.details.empty? ? 'No details yet' : score.details %></p>
 
-<h2 id="chorale-name" contenteditable="true"><%=@chorale.name%></h2>
+<br>
 
-<!-- div below must be written on one line, to avoid extra childnodes -->
 <div id="music-input"></div>
 
 <br>
 
 <button id="play-music">Play Music</button>
 <button id="clear-music">Clear</button>
+<button id="melody-gen">Melody Generator</button>
 
 <br><br>
-<form id="form" action="/scores" method="POST">
+<form id="form" action="/scores/<%=score.id%>" method="PUT">
 
 <fieldset>
-<legend>Music Settings</legend>
-  <select id="key-select" name="key">                                                           
-  <option value="C">C Major / a minor</option>                          
-  <option value="G">G Major / e minor</option>                          
-  <option value="D">D Major / b minor</option>                          
-  <option value="A">A Major / f# minor</option>                         
-  <option value="E">E Major / c# minor</option>                         
-  <option value="B">B Major / g# minor</option>                        
-  <option value="F#">F# Major / d# minor</option>                        
-  <option value="C#">C# Major / a# minor</option>                        
-  <option value="F">F Major / d minor</option>                           
-  <option value="Bb">Bb Major / g minor</option>                         
-  <option value="Eb">Eb Major / c minor</option>                          
-  <option value="Ab">Ab Major / f minor</option>                          
-  <option value="Db">Db Major / b-flat minor</option>                     
-  <option value="Gb">Gb Major / e-flat minor</option>                     
-  <option value="Cb">Cb Major / a-flat minor</option>                    
+<legend>Music Details</legend>
+  <label for="key-select">Key</label>
+  <select id="key-select" name="key">
+  <% keys = [['C', 'C Major / a minor'], ['G', 'G Major / e minor'],
+             ['D', 'D Major / b minor'], ['A', 'A Major / f# minor'],
+             ['E', 'E Major / c# minor'], ['B', 'B Major / g# minor'],
+             ['F#', 'F# Major / d# minor'], ['C#', 'C# Major / a# minor'],
+             ['F', 'F Major / d minor'], ['Bb', 'Bb Major / g minor'],
+             ['Eb', 'Eb Major / c minor'], ['Ab', 'Ab Major / f minor'],
+             ['Db', 'Db Major / b-flat minor'], ['Gb', 'Gb Major / e-flat minor'],
+             ['Cb', 'Cb Major / a-flat minor']] %>
+  <% keys.each do |key| %>
+    <% selected = key[0] == score.key ? ' selected="selected"' : '' %>
+    <option value="<%= key[0] %>"<%= selected %>><%= key[1] %></option>
+  <% end %>
   </select>
 
-  <label for="tempo-input">Tempo:</label>
-  <input id="tempo-input" type="text" size="8" name="tempo" value="60" />
+  <label for="time-select">Key</label>
+  <select id="time-select" name="time">                                                           
+  <% times = [['4/4', '4 / 4'], ['3/4', '3 / 4'],
+              ['2/4', '2 / 4'], ['6/8', '6 / 8']] %>
+  <% times.each do |time| %>
+    <% selected = time[0] == score.time_sig ? ' selected="selected"' : '' %>
+    <option value="<%= time[0] %>"<%= selected %>><%= time[1] %></option>
+  <% end %>
+  </select>
+
+  <label for="tempo-input">Tempo</label>
+  <input id="tempo-input" type="text" size="8" name="tempo" value="<%=score.tempo%>" />
+  
+  <br>
+
+  <label for="score-title">Title</label>
+  <input id="score-title" type="text" name="title" value="<%=score.title%>" />
+  <br>
+  <label for="score-details">Details</label>
+  <textarea rows="3" cols="50" id="score-details"
+    name="details"><%=score.details%></textarea>
+
+  <input id="s_input" type="hidden" name="soprano" />
+  <input id="a_input" type="hidden" name="alto" />
+  <input id="t_input" type="hidden" name="tenor" />
+  <input id="b_input" type="hidden" name="bass" />
+  <br>
 
   <input type="submit" value="Submit">
 </fieldset>
@@ -44,8 +67,22 @@
 <script src="/render.js"></script>
 <script src="/playback.js"></script>
 <script src="/events.js"></script>
+<script src="/melody.js"></script>
 <script src="/main.js"></script>
 <script>
-  jsonStr = <%=@chorale.json%>;
-  buildPage(jsonStr);
-</script>
+  var score = {
+    title: '<%=score.title%>',
+    details: '<%=score.details%>',
+    key: '<%=score.key%>',
+    time: '<%=score.time_sig%>',
+    tempo: <%=score.tempo%>,
+    staves: []
+  };
+  <% score.lines.each do |line| %>
+    score.staves.push(<%=line.json%>);
+  <% end %>
+
+  document.addEventListener('DOMContentLoaded', function() {
+    buildPage(score);
+  });
+</script> 

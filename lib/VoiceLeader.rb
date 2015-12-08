@@ -52,7 +52,7 @@ module Secure
   end
 
   def Secure.login?(username, password)
-    if (user = Sql::User.find_by name: username)
+    if (user = MyData::User.find_by name: username)
       hash = BCrypt::Password.new(user.password)
       return username if hash == password
     end

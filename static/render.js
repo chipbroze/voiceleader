@@ -158,6 +158,21 @@ function clearNotes(musNode) {
   }
   resetMusicWidth(musNode);
 }
+
+/**
+ * Update all staves with current note data.
+ * @param {node} musNode: Music editor element.
+ */
+function fillNotes(musNode, music) {
+  for (var s = 0, len = musNode.childNodes.length; s < len; s++) {
+    var noteDiv = musNode.childNodes[s].noteDiv;
+    var staff = music.staves[s];
+    for (var i = 0, lem = staff.notes.length; i < lem; i++) {
+      createNote(staff.notes[i], noteDiv);
+    }
+  }
+}
+
 /**
  * Reset width for all Staff elements, based on widest noteDiv.
  * @param {node} musNode: Music editor element.

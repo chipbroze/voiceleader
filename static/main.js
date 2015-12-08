@@ -1,5 +1,5 @@
-function buildPage(json) {
-  var music = importMusic(json);
+function buildPage(obj) {
+  var music = importMusic(obj);
 
   makeClearButton('clear-music', 'music-input', music);
   makeKeySelector('key-select', 'music-input', music);

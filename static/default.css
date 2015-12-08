@@ -1,41 +1,215 @@
+/**
+ * Resets and Overrides
+ */
+
+* { margin: 0; padding: 0 }
+img { vertical-align: top }
+
+/**
+ * Links and Type
+ */
+
 body {
-  background: 'white';
-  color: 'black';
-  font-family: Helvetica, sans-serif;
-  width: 700px;
-  margin: 0 auto 0 auto;
-  font-size: .9em;
-  border: 0px solid black;
+  background-color: #660066;
+  color: black;
+  margin: 0px;
+  font-size: 16px;
+  font-family: 'Verdana', sans-serif;
 }
+.center-body {
+  width: 900px;
+  height: auto;
+  margin: 0 auto;
+}
+
+h1, h2 {
+  font-size: 1.5em;
+  color: #660066;
+  margin-bottom: 10px;
+  border-bottom: 2px dotted #660066;
+}
+
+h3 {
+  font-size: 1em;
+  color: #660066;
+  margin-bottom: 5px;
+}
+
+p {
+  line-height: 1.5em;
+  margin-bottom: 1.5em;
+}
+
+a:hover {
+  text-decoration: none;
+}
+
+/**
+ * Forms
+ */
+
+fieldset {
+  border: 0px dashed #660066;
+  border-radius: 5px;
+  background-color: #FFCC99;
+  margin: 0px 20px 20px 20px;
+  padding: 0 15px;
+}
+
+legend {
+  color: #660066;
+  padding: 0.5em;
+  position: relative;
+  top: -1em;
+  left: -7px;
+}
+
+label {
+  display: block;
+  font-size: 0.8em;
+  font-weight: bold;
+}
+
+input, textarea, select {
+  font-size: 0.8em;
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  margin: 0 auto 0.5em auto;
+  padding: 0.2em;
+}
+select {
+  font-size: 1.2em;
+}
+
+textarea {
+  resize: none;
+  overflow: auto;
+}
+
+button {
+  background-color: #660066;
+  display: block;
+  width: 100%;
+  color: white;
+  font-size: 0.8em;
+  margin: 1em 0 1.5em 0;
+  padding: 0.3em 50px;
+}
+button:focus {
+  outline: none;
+}
+#editor-tools {
+  width: 80%;
+  margin: 0 auto 20px auto;
+}
+.editor-btn {
+  display: inline-block;
+  width: 32.8%;
+  margin: 0;
+}
+.detail-input {
+  display: inline-block;
+  width: 31.8%;
+}
+.flat-title {
+  border: none;
+  font-size: 1.5em;
+}
+.flat-details {
+  border: none;
+  font-size: 1em;
+  height: 3.5em;
+}
+
+/**
+ * Header
+ */
+
 header {
+  background-color: #660066;
+  padding: 20px 10px 20px 10px;
+  height: 130px;
   border-bottom: 0px solid black;
+  overflow: hidden;
 }
-img {
-  /* This eliminates 'padding' below the image */
-  vertical-align: top;
+
+header a {
+  color: yellow;
+}
+
+#banner {
+  margin-top: 40px;
+}
+
+#session label, #session input, #session p {
+  color: white;
+}
+#session input {
+  color: black;
+}
+
+/**
+ * Article
+ */
+
+article {
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.left-body {
+  width: 40%;
+  margin-right: 5%;
+  float: left;
+}
+.right-body {
+  width: 55%;
+  float: left;
+}
+.score-thumb {
+  width: 28%;
+  display: inline-block;
+  border-radius: 5px;
+  background-color: #FFCC99;
+  margin: 10px;
+  padding: 10px;
+}
+
+/**
+ * Footer
+ */
+
+footer {
+  font-size: 0.8em;
+  color: white;
+  text-align: center;
+  padding: 5px 0;
+  margin: 0;
+}
+
+/**
+ * Unsorted
+ */
+
+.float-left {
+  float: left;
+}
+
+.hide {
+  display: none;
 }
 article {
   background: white;
-  border: 0px double red;
-  padding: 1em;
+  padding-top: 20px;
 }
-div#login {
-  background: 'white';
-  text-align: right;
-  width: 100%;
-  height: 2em;
+div#session {
+  float: right;
 }
-#login p, #login label, #login a {
-  text-align: right;
-  color: 'black';
-  margin: 0;
-}
-div#music {
-  border: 1px solid #440044;
-}
+
 .float {
   float: left;
-  margin-right: 1em;
+  margin-right: 12px;
 }
 div.column {
   float: left;
@@ -44,8 +218,8 @@ div.column {
 }
 div#voice_input label {
   display: inline-block; 
-  width: 10em;
-  margin-right: .5em;
+  width: 120px;
+  margin-right: 6px;
   text-align: right;
 }
 table.chords {
@@ -65,11 +239,6 @@ table.chords ul {
   margin: 0;
   padding: 0;
 }
-h1, h2 {
-  font-size: 1.5em;
-  color: #440044;
-  margin-top: 0;
-}
 p.foot {
   margin: 0;
 }
@@ -88,23 +257,27 @@ dt {
 dd {
   color: #222222;
   font-style: italic;
-  margin: 0 0 1em 0;
-}
-footer {
-  font-size: .75em;
-  text-align: center;
-  margin: 0;
+  margin: 0 0 12px 0;
 }
 
+/**
+ * Music Editor
+ */
 
-div#music-input {
-  width: 700px;
-  border: 1px solid black;
-  background: #ddd;
+#music-input {
+  width: 100%;
+  border: 0px solid black;
+  border-radius: 25px;
+  background-color: #FFCC99;
+  margin-bottom: 0px; 
   resize: horizontal;
   overflow-x: auto;
   overflow-y: hidden;
   white-space: nowrap;
+}
+#music-input:focus {
+  outline: none;
+  box-shadow: 0 0 3px 1px #660066;
 }
 
 a.staff {
@@ -112,12 +285,13 @@ a.staff {
   height: 49px;
   max-height: 49px; 
   display: block;
-  background: #fff;
+  background-color: #FFEEDD;
   background-image: url(images/staff-background.png);
   background-repeat: repeat-x;
   position: relative;
   margin: 60px 0 60px 0;
   border-right: 5px double black;
+  border-left: 1px solid black;
 }
 a.staff img {
   position: relative;

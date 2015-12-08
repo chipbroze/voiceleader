@@ -1,0 +1,39 @@
+<h1>Edit Score</h1>
+
+<form id="form">
+
+<%= yield %>
+
+  <button type="submit">Save Score</button>
+</form>
+
+<script>
+var form = document.getElementById('form');
+var params = [];
+var inputs = [].slice.call(form.getElementsByTagName('INPUT'));
+inputs = inputs.concat([].slice.call(form.getElementsByTagName('SELECT')));
+inputs = inputs.concat([].slice.call(form.getElementsByTagName('TEXTAREA')));
+
+form.addEventListener('submit', function(ev) {
+  ev.preventDefault();
+  var xhttp = new XMLHttpRequest();
+  xhttp.addEventListener('load', function() {
+    params = [];
+    document.getElementById('response').innerHTML = this.responseText;
+    //window.location = '/scores';
+  });
+
+  inputs.forEach(function(input) {
+    params.push(input.name + '=' + input.value);
+  });
+
+  params = params.join('&');
+
+  xhttp.open('PUT', '/scores/<%= score.id %>');
+  xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+  xhttp.send(params);
+});
+</script>
+
+<div id="response">
+</div>

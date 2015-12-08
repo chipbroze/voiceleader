@@ -63,12 +63,13 @@ function makeTempoInput(elemId, musicObj) {
   });
 }
 
+
+// New plan: Submit all fields independantly, except JSONify individual staves.  Also, add key to stave data??
 function makeFormSubmit(formId, musicObj) {
   var form = document.getElementById(formId);
   var input = document.createElement('input');
   input.setAttribute('type', 'hidden');
-  input.setAttribute('name', 'JSON');
-  input.style.display = 'none';
+  input.setAttribute('name', 'staves-json');
   form.appendChild(input);
   form.addEventListener('submit', function() {
     input.value = musicObj.JSONify();
@@ -76,23 +77,21 @@ function makeFormSubmit(formId, musicObj) {
   });
 }
 
-function importMusic(json) {
-  if (json === undefined) {
-    var music = new Music('default name', 60, 'C', '4/4');
+function importMusic(obj) {
+  if (obj === undefined) {
+    var music = new Music('Untitled', 120, 'C', '4/4');
     music.addStaff('soprano', 'treble');
     music.addStaff('alto', 'treble');
     music.addStaff('tenor', 'tenor');
     music.addStaff('bass', 'bass');
     return music;
   } else {
-    var obj = json;
-    var music = new Music(obj['name'], obj['tempo'], obj['key'], obj['timeSig']);
-    for (var i = 0, len = obj['staves'].length; i < len; i++) {
-      var sObj = obj['staves'][i];
-      music.addStaff(sObj['voice'], sObj['clef']);
-      var staff = music.staves[i];
-      for (var j = 0, lem = sObj['notes'].length; j < lem; j++) {
-        var nObj = sObj['notes'][j];
+    var music = new Music(obj['title'], obj['tempo'], obj['key'], obj['time']);
+    for (var s = 0, len = obj['staves'].length; s < len; s++) {
+      var json = obj['staves'][s];
+      var staff = music.addStaff(json['voice'], json['clef']);
+      for (var n = 0, lem = json['notes'].length; n < lem; n++) {
+        var nObj = json['notes'][n];
         staff.addNote(nObj['name'], nObj['type'], nObj['rest'], 
                       nObj['exp'], nObj['chromatic']);
       }
@@ -104,13 +103,16 @@ function importMusic(json) {
 function makeMelodyButton(buttonId, editorId, music) {
   var button = document.getElementById(buttonId);
   var editor = document.getElementById(editorId);
+  if (!button || !editor) {
+    return false;
+  }
   var staff = music.staves[0];
   var noteDiv = editor.firstChild.noteDiv;
   button.addEventListener('click', function() {
     clearNotes(editor);
     music.clear();
     music.genMelody();
-    drawMusic(editorId, music);
+    fillNotes(editor, music);
   });
 }
 

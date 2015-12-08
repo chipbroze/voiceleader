@@ -1,8 +1,24 @@
 <h1><%= session[:username] %>'s Compositions</h1>
-<hr>
 
-<% @user.chorales.each do |chorale| %>
-  <a href="scores/<%=chorale.id%>">
-    <h2 id="score-<%=chorale.id%>"><%=chorale.name%></h2>
-  </a><br>
+<% scores.each do |score| %>
+<div class="score-thumb">
+  <a href="scores/<%=score.id%>">
+    <h3 id="score-<%=score.id%>"><%=score.title%></h3>
+  </a>
+  <p><%=score.details.empty? ? 'No details provided' : score.details%></p>
+  <button id="<%=score.id%>" class="del-score" href="#">Delete</button>
+</div>
 <% end %>
+
+<script>
+  var btns = document.getElementsByClassName('del-score');
+  for (var b = 0, len = btns.length; b < len; b++) {
+    btns[b].addEventListener('click', function(ev) {
+      ev.preventDefault();
+      var xhttp = new XMLHttpRequest();
+      xhttp.open('DELETE', '/scores/' + this.id);
+      xhttp.send();
+      this.parentNode.style.display = 'none';
+    });
+  }
+</script>

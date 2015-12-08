@@ -1,5 +1,6 @@
 require 'pg'
 require 'active_record'
+require 'json'
 
 # ActiveRecord::Base.logger = Logger.new(File.open('./data/database.log', 'w'))
 
@@ -22,102 +23,90 @@ ActiveRecord::Schema.define do
     end
   end
 
-  unless ActiveRecord::Base.connection.tables.include? 'chorales'
-    create_table :chorales do |table|
+  unless ActiveRecord::Base.connection.tables.include? 'scores'
+    create_table :scores do |table|
       table.column :user_id,     :integer
-      table.column :json,        :text
-      table.column :name,        :string
-      table.column :tempo,       :integer
+      table.column :title,       :string
+      table.column :details,     :text
       table.column :key,         :string
       table.column :time_sig,    :string
+      table.column :tempo,       :integer
     end
   end
 
-  unless ActiveRecord::Base.connection.tables.include? 'melodies'
-    create_table :melodies do |table|
-      table.column :chorale_id,  :integer
-      table.column :index,       :integer
-      table.column :voice,       :string
-      table.column :clef,        :string
+  unless ActiveRecord::Base.connection.tables.include? 'lines'
+    create_table :lines do |table|
+      table.column :score_id,    :integer
+      table.column :json,        :text
     end
   end
 
-  unless ActiveRecord::Base.connection.tables.include? 'notes'
-    create_table :notes do |table|
-      table.column :melody_id,   :integer
-      table.column :index,       :integer
-      table.column :name,        :string
-      table.column :rhythm_type, :string
-      table.column :rest,        :boolean
-      table.column :exp,         :text
-      table.column :chromatic,   :integer
-    end
-  end
 end
 
-module Sql
+module MyData
 
   class User < ActiveRecord::Base
     validates :name, :password, presence: true
     validates :name, length: {in: 4..20}
     validates :name, uniqueness: true
-    has_many  :chorales
+    has_many  :scores
   end
 
-  class Chorale < ActiveRecord::Base
+  class Score < ActiveRecord::Base
     belongs_to :user
-    has_many   :melodies
-    has_many   :notes, through: :melodies
+    has_many   :lines
   end
   
-  class Melody < ActiveRecord::Base
-    belongs_to :chorale
-    has_many   :notes
-  end
-  
-  class Note < ActiveRecord::Base
-    belongs_to :melody
+  class Line < ActiveRecord::Base
+    belongs_to :score
   end
 
-  # Add chorale to database
-  def Sql.add_chorale(username, json, music)
-    return false unless (user = Sql::User.find_by name: username)
+  # Add score to database
+  def MyData.add_score(username, params)
+    return false unless (user = MyData::User.find_by name: username)
     
-    chorale = user.chorales.create(
-      name:     music['name'],
-      json:     json,
-      tempo:    music['tempo'],
-      key:      music['key'],
-      time_sig: music['timeSig']
+    score = user.scores.create(
+      title:    params['title'],
+      details:  params['details'],
+      key:      params['key'],
+      time_sig: params['time'],
+      tempo:    params['tempo']
     )
-    music['staves'].each_with_index do |staff, i|
-      melody = chorale.melodies.create(
-        index: i,
-        voice: staff['voice'],
-        clef:  staff['clef']
-      )
-      staff['notes'].each_with_index do |note, j|
-        note = melody.notes.create(
-          index:       j,
-          name:        note['name'],
-          rhythm_type: note['type'],
-          rest:        note['rest'],
-          exp:         note['exp'],
-          chromatic:   note['chromatic']
-        )
-      end
+    staves = JSON.parse(params['staves-json'])
+    staves.each do |staff|
+      score.lines.create(json: staff.to_json)
     end
   end
-  
+
+  # Update existing score
+  def MyData.update_score(username, params)
+    score = MyData::Score.find(params['id'])
+    return false unless (score.user.name == username)
+
+    score.update(
+      title:    params['title'],
+      details:  params['details'],
+      key:      params['key'],
+      time_sig: params['time'],
+      tempo:    params['tempo']
+    )
+    staves = JSON.parse(params['staves-json'])
+    score.lines.each_with_index do |line, i|
+      line.update(
+        json: staves[i].to_json
+      )
+    end
+  end
+
   # Add new user to database
-  def Sql.add_user(username, password)
-    user = Sql::User.create(
+  def MyData.add_user(username, password)
+    user = MyData::User.create(
       name:     username,
       password: password
     ).valid?
   end
 end
 
-Sql.add_user(
+MyData.add_user(
   'Guest',
   '$2a$10$z4EnxjfxpVBxhcdeUshbw.qfxodOa1mJJJ6e9B3nCHyaJ9QKSspvC')
