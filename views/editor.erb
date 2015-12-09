@@ -1,79 +1,45 @@
 
+<div id="editor">
+
+<div id="score-data">
 <div class="left-body">
+<label for="score-title">Title</label>
 <input id="score-title" type="text" name="title" class="flat-title" 
-  value="<%= score.title %>" onfocus="this.select();" />
-<textarea id="score-details" name="details" class="flat-details" 
-  onfocus="this.select();"><%= score.details %></textarea>
+  value="<%= @title %>" />
+<label for="score-details">Details</label>
+<textarea id="score-details" name="details"
+  class="flat-details"><%= @details %></textarea>
 </div>
 <div class="right-body">
-<fieldset>
-<legend>Music Details</legend>
-  <div class="detail-input">
-  <label for="key-select">Key</label>
-  <select id="key-select" name="key">
-  <% keys = [['C', 'C Maj / a min'], ['G', 'G Maj / e min'],
-             ['D', 'D Maj / b min'], ['A', 'A Maj / f# min'],
-             ['E', 'E Maj / c# min'], ['B', 'B Maj / g# min'],
-             ['F#', 'F# Maj / d# min'], ['C#', 'C# Maj / a# min'],
-             ['F', 'F Maj / d min'], ['Bb', 'Bb Maj / g min'],
-             ['Eb', 'Eb Maj / c min'], ['Ab', 'Ab Maj / f min'],
-             ['Db', 'Db Maj / b-flat min'], ['Gb', 'Gb Maj / e-flat min'],
-             ['Cb', 'Cb Maj / a-flat min']] %>
-  <% keys.each do |key| %>
-    <% slct = score.key == key[0] ? ' selected="selected"' : '' %>
-    <option value="<%= key[0] %>"<%= slct %>><%= key[1] %></option>
-  <% end %>
-  </select>
-  </div>
-  <div class="detail-input">
-  <label for="time-select">Meter</label>
-  <select id="time-select" name="time">                                                           
-  <% times = [['4/4', '4 / 4'], ['3/4', '3 / 4'],
-              ['2/4', '2 / 4'], ['6/8', '6 / 8']] %>
-  <% times.each do |time| %>
-    <% slct = score.time_sig == time[0] ? ' selected="selected"' : '' %>
-    <option value="<%= time[0] %>"<%= slct %>><%= time[1] %></option>
-  <% end %>
-  </select>
-  </div>
-  <div class="detail-input">
-  <label for="tempo-input">Tempo</label>
-  <select id="tempo-input" name="tempo">                                                           
-  <% (32...300).step(8) do |tempo| %>
-    <% slct = score.tempo == tempo ? ' selected="selected"' : '' %>
-    <option value="<%= tempo %>"<%= slct %>><%= tempo %></option>
-  <% end %>
-  </select>
-  </div>
-</fieldset>
+  <label for="key">Key</label>
+  <select id="key" name="key"></select>
+  <label for="timeSig">Meter</label>
+  <select id="timeSig" name="time"></select>
+  <label for="tempo">Tempo</label>
+  <select id="tempo" name="tempo"></select>
+</div>
 </div>
 
+<!-- Music Editor -->
 <div id="music-input"></div>
 
+<!-- Editor Toolbox -->
 <div id="editor-tools">
 <button id="play-music" class="editor-btn" type="button">Play Music</button>
 <button id="clear-music" class="editor-btn" type="button">Clear</button>
 <button id="melody-gen" class="editor-btn" type="button">Melody Generator</button>
+<button id="save-music" class="editor-btn" type="submit">Save Score</button>
 </div>
 
-<script src="/data.js"></script>
-<script src="/render.js"></script>
-<script src="/playback.js"></script>
-<script src="/events.js"></script>
-<script src="/melody.js"></script>
-<script src="/main.js"></script>
-<script>
-  var music = {
-    title: '<%= score.title %>',
-    details: '<%= score.details %>',
-    key: '<%= score.key %>',
-    tempo: '<%= score.tempo %>',
-    timeSig: '<%= score.time_sig %>',
-    staves: []
-  };
-  <% score.lines.each do |line| %>
-    music.staves.push(<%=line.json%>);
-  <% end %>
+</div>
 
-  buildPage(music);
+<!-- Javascripts -->
+<script src="/scripts/data.js"></script>
+<script src="/scripts/render.js"></script>
+<script src="/scripts/playback.js"></script>
+<script src="/scripts/events.js"></script>
+<script src="/scripts/melody.js"></script>
+<script src="/scripts/main.js"></script>
+<script>
+  buildPage(<%= @json %>);
 </script> 

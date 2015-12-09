@@ -31,45 +31,60 @@ function makeClearButton(buttonId, editorId, music) {
   });
 }
 
-function makeKeySelector(selectorId, editorId, music) {
-  var selector = document.getElementById(selectorId);
+function makeSelector(id, editorId, music, options, changeFunc) {
+  var selector = document.getElementById(id);
+  for (var i = 0, len = options.length; i < len; i++) {
+    var option = document.createElement('option');
+    var textNd = document.createTextNode(options[i][1]);
+    option.value = options[i][0];
+    if (option.value == music[id]) {
+      option.selected = 'selected';
+    }
+    option.appendChild(textNd);
+    selector.appendChild(option);
+  }
+  
   var musNode = document.getElementById(editorId);
   selector.addEventListener('change', function() {
-    music.key = selector.value;
-    makeKeySig(music, musNode);
-    for (var i = 0, len = musNode.childNodes.length; i < len; i++) {
-      var staffNode = musNode.childNodes[i];
-      var noteNodes = staffNode.noteDiv.childNodes;
-      drawKeySig(staffNode.staff, staffNode);
-      for (var n = 0, lem = noteNodes.length; n < lem; n++) {
-        var node = noteNodes[n];
-        node.note.updateKey();
-        drawNote(node.note, node, ['accidental']);
-      }
-    }
+    return changeFunc(selector, musNode, music);
   });
 }
 
-function makeTempoInput(elemId, musicObj) {
-  var elem = document.getElementById(elemId);
-  elem.addEventListener('change', function() {
-    elem.value = parseInt(elem.value) || 120;
-    if (elem.value > 300) {
-      elem.value = 300;
-    } else if (elem.value < 30) {
-      elem.value = 30;
+function keyChange(selector, musNode, music) { 
+  music.key = selector.value;
+  makeKeySig(music, musNode);
+  for (var i = 0, len = musNode.childNodes.length; i < len; i++) {
+    var staffNode = musNode.childNodes[i];
+    var noteNodes = staffNode.noteDiv.childNodes;
+    drawKeySig(staffNode.staff, staffNode);
+    for (var n = 0, lem = noteNodes.length; n < lem; n++) {
+      var node = noteNodes[n];
+      node.note.updateKey();
+      drawNote(node.note, node, ['accidental']);
     }
-    musicObj.tempo = elem.value;
-  });
+  }
+}
+
+function timeChange(selector, musNode, music) { 
+  music.timeSig = selector.value;
+  makeTimeSig(music, musNode);
+  for (var i = 0, len = musNode.childNodes.length; i < len; i++) {
+    var staffNode = musNode.childNodes[i];
+    drawTimeSig(staffNode.staff, staffNode);
+  }
+}
+
+function tempoChange(selector, musNode, music) {
+  music.tempo = parseInt(selector.value);
 }
 
 
-// New plan: Submit all fields independantly, except JSONify individual staves.  Also, add key to stave data??
+// New plan: Store title, details, and music-json
 function makeFormSubmit(formId, musicObj) {
   var form = document.getElementById(formId);
   var input = document.createElement('input');
   input.setAttribute('type', 'hidden');
-  input.setAttribute('name', 'staves-json');
+  input.setAttribute('name', 'music');
   form.appendChild(input);
   form.addEventListener('submit', function() {
     input.value = musicObj.JSONify();
@@ -77,21 +92,22 @@ function makeFormSubmit(formId, musicObj) {
   });
 }
 
-function importMusic(obj) {
-  if (obj === undefined) {
-    var music = new Music('Untitled', 120, 'C', '4/4');
+function importMusic(json) {
+  if (json === undefined) {
+    var music = new Music(120, 'C', '4/4');
     music.addStaff('soprano', 'treble');
     music.addStaff('alto', 'treble');
     music.addStaff('tenor', 'tenor');
     music.addStaff('bass', 'bass');
     return music;
   } else {
-    var music = new Music(obj['title'], obj['tempo'], obj['key'], obj['time']);
+    var obj = json;
+    var music = new Music(obj['tempo'], obj['key'], obj['time']);
     for (var s = 0, len = obj['staves'].length; s < len; s++) {
-      var json = obj['staves'][s];
-      var staff = music.addStaff(json['voice'], json['clef']);
-      for (var n = 0, lem = json['notes'].length; n < lem; n++) {
-        var nObj = json['notes'][n];
+      var sObj = obj['staves'][s];
+      var staff = music.addStaff(sObj['voice'], sObj['clef']);
+      for (var n = 0, lem = sObj['notes'].length; n < lem; n++) {
+        var nObj = sObj['notes'][n];
         staff.addNote(nObj['name'], nObj['type'], nObj['rest'], 
                       nObj['exp'], nObj['chromatic']);
       }

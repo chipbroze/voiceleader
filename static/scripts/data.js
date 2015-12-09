@@ -3,9 +3,7 @@
  */
 
 // create a new Music object
-function Music(title, tempo, key, timeSig) {
-  this.title = title || 'Untitled';
-  this.details = 'Placeholder details';
+function Music(tempo, key, timeSig) {
   this.tempo = tempo || 120;
   this.key = key || 'C';
   this.timeSig = timeSig || '4/4';
@@ -175,10 +173,15 @@ Note.prototype.isDiatonic = function() {
  */
 
 Music.prototype.JSONify = function() {
-  var staves = this.staves.map(function(staff) {
+  var musicObj = {
+    tempo: this.tempo,
+    key: this.key,
+    timeSig: this.timeSig,
+  };
+  musicObj.staves = this.staves.map(function(staff) {
     return staff.JSONify();
   });
-  return JSON.stringify(staves);
+  return JSON.stringify(musicObj);
 };
 
 Staff.prototype.JSONify = function() {

@@ -7,7 +7,10 @@ require './lib/VoiceLeader.rb'
 set :static, true
 set :public_folder, "static"
 set :views, "views"
+set :method_override, true
 enable :sessions
+
+# Index, Sign-in, Logout ====================================================
 
 get '/?' do
   erb :index
@@ -35,7 +38,7 @@ post '/login' do
   "<p>Could not find specified username/password</p>"
 end
 
-# Score routes
+# Score routes ==============================================================
 
 get '/scores' do
   user = MyData::User.find_by name: session[:username]
@@ -43,47 +46,51 @@ get '/scores' do
 end
 
 post '/scores' do
-  MyData.add_score(session[:username] || "Guest", params)
-  redirect('/scores', 303)
+  MyData.add_score(session[:username], params)
+  redirect '/scores', 303
 end
 
 get '/scores/new' do
-  score = MyData::Score.find(39)
-  erb :new_score, :locals => {score: score} do
-    erb :editor, :locals => {score: score}
+  @json = ""
+  @title = "New Score"
+  @details = "No description yet"
+  erb :new_score do
+    erb :editor
   end
-end
-
-get '/scores/xml' do
-  "Success"
 end
 
 get '/scores/:id' do
   begin
     score = MyData::Score.find(params[:id])
+    @id = params[:id]
+    @json = score.music
+    @title = score.title
+    @details = score.details
   rescue
-    "That score no longer exists"
+    "Score could not be found"
   else
     if score.user.name == session[:username]
-      erb :update_score, :locals => {score: score} do
-        erb :editor, :locals => {score: score}
+      erb :update_score do
+        erb :editor
       end
     else
-      "That score doesn't belong to you"
+      "Forbidden"
     end
   end
 end
 
 put '/scores/:id' do
-  MyData.update_score(session[:username] || "Guest", params)
-  params['id']
+  MyData.update_score(session[:username], params)
+  redirect '/scores', 303
 end
 
 delete '/scores/:id' do
   score = MyData::Score.find(params[:id])
   score.destroy
-  redirect '/', 303
+  redirect '/scores', 303
 end
+
+# Other =====================================================================
 
 get '/theory' do
 #  @key = params[:key]

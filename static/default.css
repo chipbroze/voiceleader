@@ -79,7 +79,8 @@ input, textarea, select {
   padding: 0.2em;
 }
 select {
-  font-size: 1.2em;
+  font-size: 1em;
+  background-color: #FFEEDD;
 }
 
 textarea {
@@ -90,36 +91,62 @@ textarea {
 button {
   background-color: #660066;
   display: block;
-  width: 100%;
   color: white;
   font-size: 0.8em;
   margin: 1em 0 1.5em 0;
   padding: 0.3em 50px;
+}
+button:hover {
+  background-color: #771177;
 }
 button:focus {
   outline: none;
 }
 #editor-tools {
   width: 80%;
-  margin: 0 auto 20px auto;
+  clear: both;
+  margin: 0 auto;
+  font-size: 0;
 }
 .editor-btn {
   display: inline-block;
-  width: 32.8%;
+  background-color: #999999;
+  box-sizing: border-box;
+  width: 25%;
   margin: 0;
+  padding: 5px 20px;
+  font-size: 12px;
 }
-.detail-input {
-  display: inline-block;
-  width: 31.8%;
+.editor-btn:hover {
+  background-color: #AAAAAA;
+}
+#save-music {
+  background-color: #660066;
+}
+#save-music:hover {
+  background-color: #771177;
+}
+
+#score-data {
+  margin: 10px;
 }
 .flat-title {
-  border: none;
+  background-color: #FFEEDD;
   font-size: 1.5em;
 }
 .flat-details {
-  border: none;
+  background-color: #FFEEDD;
   font-size: 1em;
   height: 3.5em;
+}
+.del-score {
+  display: inline-block;
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  padding: 3px 6px;
+  margin: 5px;
+  color: red;
 }
 
 /**
@@ -169,6 +196,9 @@ article {
 }
 .score-thumb {
   width: 28%;
+  height: 4em;
+  overflow: hidden;
+  position: relative;
   display: inline-block;
   border-radius: 5px;
   background-color: #FFCC99;
@@ -176,7 +206,7 @@ article {
   padding: 10px;
 }
 
-/**
+/****************************************************************************
  * Footer
  */
 
@@ -184,11 +214,11 @@ footer {
   font-size: 0.8em;
   color: white;
   text-align: center;
-  padding: 5px 0;
+  padding-bottom: 10px;
   margin: 0;
 }
 
-/**
+/****************************************************************************
  * Unsorted
  */
 
@@ -264,20 +294,24 @@ dd {
  * Music Editor
  */
 
-#music-input {
-  width: 100%;
+#editor {
+  padding-top: 20px;
+  margin-bottom: 20px;
   border: 0px solid black;
   border-radius: 25px;
   background-color: #FFCC99;
+}
+
+#music-input {
+  width: 100%;
   margin-bottom: 0px; 
-  resize: horizontal;
   overflow-x: auto;
   overflow-y: hidden;
   white-space: nowrap;
 }
 #music-input:focus {
   outline: none;
-  box-shadow: 0 0 3px 1px #660066;
+  /*box-shadow: 0 0 3px 1px #660066;*/
 }
 
 a.staff {
