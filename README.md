@@ -1,6 +1,6 @@
 Voiceleader
 ===========
-VoiceLeader is a work in progress, and can be visited at [a link](http://voiceleader.herokuapp.com/).
+VoiceLeader is a work in progress, and can be visited at [http://voiceleader.herokuapp.com/](http://voiceleader.herokuapp.com/).
 
 Eventually, this little app should allow music theory teachers and students to input short SATB voiceleading exercises for evaluation.  It could also possibly allow users to generate short music compositions (with or without errors).
 
