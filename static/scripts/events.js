@@ -274,8 +274,9 @@ function makeMusicEditor(elemId, musicObj) {
   editor.setAttribute('tabindex', '1');
 
   editor.addEventListener('keydown', function(e) {
-    var keyCode = e.which || window.event.keyCode;
-    var shiftKey = e.shiftKey || window.event.shiftKey;
+    e = e || window.event;
+    var keyCode = e.which || e.keyCode;
+    var shiftKey = e.shiftKey;
     if (!activeNode) {
       return false;
     }
@@ -302,15 +303,21 @@ function makeMusicEditor(elemId, musicObj) {
     case 82: // 'r' key
       toggleRest(activeNode);
       break;
+    case 61:
+    case 43:
     case 187: // +/=
       changeAccidental(activeNode, 1);
       break;
+    case 173:
+    case 95:
     case 189: // -/_
       changeAccidental(activeNode, -1);
       break;
+    case 60:
     case 188: // comma
       changeNoteType(activeNode, -1);
       break;
+    case 62:
     case 190: // period
       changeNoteType(activeNode, 1);
       break;
