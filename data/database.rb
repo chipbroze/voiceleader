@@ -4,7 +4,7 @@ require 'json'
 
 # ActiveRecord::Base.logger = Logger.new(File.open('./data/database.log', 'w'))
 
-db = URI.parse(ENV['LDB_PATH'])
+db = URI.parse(ENV['DB_PATH'])
 
 ActiveRecord::Base.establish_connection(
   :adapter  => db.scheme == 'postgres' ? 'postgresql' : db.scheme,
