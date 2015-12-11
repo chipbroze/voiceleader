@@ -7,14 +7,16 @@ require 'bcrypt'
 # Results #
 ###########
 
-def make_music(key, voice_strings)
-  key = key.split(" ")
-  key = {'type' => key[0], 'number' => key[1].to_i}
-  voices = voice_strings.map { |v| Voice.new(v) }
-  music = Music.new(key, voices)
+def make_music(music_json)
+  music_hash = JSON.parse(music_json)
+  music = Music.new(music_hash)
 end
 
 def find_mistakes(music, options)
+  if not options
+    options = ['p_fifths', 'p_octaves', 'p_unisons', 'sevenths', 'intervals', 'spacing', 'range', 'crossing', 'doubling']
+  end
+
   pair_options = {
     'p_fifths' => [:parallel, 'fifths'],
     'p_octaves' => [:parallel, 'octaves'],

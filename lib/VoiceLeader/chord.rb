@@ -1,20 +1,26 @@
 class Music
 
-  def initialize(key, voices)
-    @soprano = voices[3]
-    @alto = voices[2]
-    @tenor = voices[1]
-    @bass = voices[0]
-    @key = key
+  def initialize(music_obj)
+    @soprano, @alto, @tenor, @bass = music_obj['staves'].map do |staff|
+      Voice.new(staff)
+    end
+    @voices = [@bass, @tenor, @alto, @soprano]
+    @key = music_obj['key']
+    @time_sig = music_obj['timeSig']
     @chords = self.make_chords
   end
 
-  attr_reader :chords, :key, :soprano, :alto, :tenor, :bass
+  attr_reader :chords, :key, :soprano, :alto, :tenor, :bass, :voices
   
   def make_chords
-    notes = [@bass.notes, @tenor.notes, @alto.notes, @soprano.notes]
-    chords = notes.transpose
-    chords.map! { |c| Chord.new(c) }
+    all_notes = self.make_homophonic
+    chords = all_notes.transpose
+    chords.map { |chord| Chord.new(chord) }
+  end
+
+  def make_homophonic
+    smallest = 1
+    self.voices.map { |voice| voice.split_into(smallest) }
   end
 
   def chord_pairs
@@ -28,15 +34,19 @@ end
 class Chord
   
   def initialize(notes)
-    @notes = {'bass' => notes[0],
-              'tenor' => notes[1],
-              'alto' => notes[2],
-              'soprano' => notes[3]}
+    @notes = {
+      bass: notes[0],
+      tenor: notes[1],
+      alto: notes[2],
+      soprano: notes[3]
+    }
     @pitch_set = notes.map { |n| n.pitch }
-    @pitches = {'bass' => @pitch_set[0], 
-                'tenor' => @pitch_set[1], 
-                'alto' => @pitch_set[2],
-                'soprano' => @pitch_set[3]}
+    @pitches = {
+      bass: @pitch_set[0], 
+      tenor: @pitch_set[1], 
+      alto: @pitch_set[2],
+      soprano: @pitch_set[3]
+    }
     @bass, @tenor, @alto, @soprano = notes
     @type = self.get_type
     @parts, @parts_reverse = self.get_parts
@@ -69,8 +79,8 @@ class Chord
       p_low = pitch_set.shift
       pitch_set.each { |p_hi| ints << p_hi - p_low }
     end
-    low_voice = ['bass', 'bass', 'bass', 'tenor', 'tenor', 'alto']
-    hi_voice = ['tenor', 'alto', 'soprano', 'alto', 'soprano', 'soprano']
+    low_voice = [:bass, :bass, :bass, :tenor, :tenor, :alto]
+    hi_voice = [:tenor, :alto, :soprano, :alto, :soprano, :soprano]
     labeled_ints = [low_voice, hi_voice, ints].transpose
   end
   
@@ -172,7 +182,7 @@ class Chord
   end
   
   def get_name
-    root_voice = @parts_reverse['root'][0] || 'bass'
+    root_voice = @parts_reverse['root'][0] || :bass
     return "#{@notes[root_voice].name} #{@type}"
   end
 
@@ -180,37 +190,50 @@ end
 
 class Voice
 
-  def initialize(note_string)
-    @note_string = note_string
+  def initialize(staff_obj)
+    @note_array = staff_obj['notes']
     @notes = self.make_notes
   end
   
   attr_reader :note_string, :notes
 
   def make_notes
-    notes = self.note_string.split(',')
-    notes.map! { |n| Note.new(n) }
+    @note_array.map { |note| Note.new(note) }
+  end
+
+  def split_into(beat_length)
+    @notes.reduce([]) do |array, note|
+      count = note.beats / beat_length
+      array.concat([note] * count)
+    end
   end
 
 end
 
 class Note
 
-  def initialize(full_name)
-    @full_name = full_name
-    @letter = full_name.slice(0).upcase
-    @octave = full_name.match(/\d+/).to_a[0].to_i
-    @accidental = full_name.match(/[b#]+/).to_a[0]
-    @name = full_name.delete(@octave.to_s)
+  def initialize(note_obj)
+    @full_name = note_obj['name']
+    @letter = @full_name.slice(0).upcase
+    @octave = @full_name.match(/\d+/).to_a[0].to_i
+    @accidental = @full_name.match(/[b#]+/).to_a[0]
+    @name = @full_name.delete(@octave.to_s)
     @pitch = self.get_pitch
+    @rest = note_obj['rest']
+    @beats = self.get_beats(note_obj['type'])
   end
   
-  attr_reader :full_name, :name, :letter, :octave, :accidental, :pitch
+  attr_reader :full_name, :name, :letter, :octave, :accidental, :pitch, :rest, :beats
   
   def get_pitch
     letters = {'C' => 0, 'D' => 2, 'E' => 4, 'F' => 5, 'G' => 7, 'A' => 9, 'B' => 11}
     accidentals = {nil => 0, '#' => 1, '##' => 2, 'b' => -1, 'bb' => -2}
     pitch = 12 * (self.octave - 1) + letters[self.letter] + accidentals[self.accidental]
+  end
+
+  def get_beats(type)
+    types = { 'quarter' => 1, 'half' => 2, 'whole' => 4 }
+    types[type]
   end
 
 end

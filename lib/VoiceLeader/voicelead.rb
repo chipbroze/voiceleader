@@ -80,7 +80,7 @@ module VoiceLead
   # Check for proper spacing between voices
   def VoiceLead.spacing(chord)
     mistakes = []
-    ['soprano', 'alto', 'tenor'].each_cons(2) do |v1, v2|
+    [:soprano, :alto, :tenor].each_cons(2) do |v1, v2|
       if chord.pitches[v1] - chord.pitches[v2] > 12
         mistakes << Mistake.new('Too much spacing', "Between #{v1} and #{v2}")
       end
@@ -102,10 +102,10 @@ module VoiceLead
   # Check that notes are within appropriate range
   def VoiceLead.range(chord)
     range = {
-      'soprano' => (36..55),
-      'alto' => (31..48),
-      'tenor' => (24..43),
-      'bass' => (16..36)
+      soprano: (36..55),
+      alto: (31..48),
+      tenor: (24..43),
+      bass: (16..36)
     }
     mistakes = []
     chord.pitches.each do |voice, pitch|
@@ -133,7 +133,7 @@ module VoiceLead
         mistakes << Mistake.new('Doubling', 'Root should be doubled')
       end
     when 'third'
-      unless doubled == chord.parts['soprano'] 
+      unless doubled == chord.parts[:soprano] 
         mistakes << Mistake.new('Doubling', 'Soprano note should be doubled')
       end
     when 'fifth'

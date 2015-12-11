@@ -92,11 +92,10 @@ end
 
 # Other =====================================================================
 
-get '/theory' do
-#  @key = params[:key]
-#  @voices = [params[:bass], params[:tenor], params[:alto], params[:soprano]]
-#  @music = make_music(@key, @voices)
-#  @options = params[:options]
-#  @mistakes = find_mistakes(@music, @options)
-#  erb :results, :locals => {music: @music, mistakes: @mistakes}
+get '/scores/:id/theory' do
+  score = MyData::Score.find(params[:id])
+  @music = make_music(score.music)
+  @options = params[:options]
+  @mistakes = find_mistakes(@music, @options)
+  erb :results, :locals => {music: @music, mistakes: @mistakes}
 end

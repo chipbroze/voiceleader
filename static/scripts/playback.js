@@ -150,7 +150,7 @@ Sequence.prototype.scheduleNote = function(note, when) {
 Sequence.prototype.noteDecay = function(start, duration) {
   var value = this.values['gain'];
   this.gainNode.gain.setValueAtTime(
-    value,       start + duration * 0.7);
+    value * 1.0, start + duration * 0.7);
   this.gainNode.gain.linearRampToValueAtTime(
     value * 0.9, start + duration * 0.9);
   this.gainNode.gain.linearRampToValueAtTime(
