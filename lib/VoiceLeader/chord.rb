@@ -88,10 +88,64 @@ class Note
   @@types = { 'quarter' => 1, 'half' => 2, 'whole' => 4 }
 end
 
+class SubChord
+  attr_reader :notes, :pitch_set
+
+  def initialize(notes)
+    @notes = notes
+    @pitch_set = notes.map { |note| note.pitch % 12 }
+  end
+
+  # Find intervals between consecutives pitches
+  def interval_loop
+    ordered = @pitch_set.uniq.sort
+    ordered << ordered[0] + 12 # To compare first and last pitches
+    interval_loop = []
+    ordered.each_cons(2) { |p, q| interval_loop << q - p }
+    return interval_loop
+  end
+  
+  def get_type
+    return case self.interval_loop
+    when [5, 4, 3], [4, 3, 5], [3, 5, 4]
+      :Major
+    when [8, 4], [4, 8] # No fifth
+      :Major
+    when [3, 4, 5], [4, 5, 3], [5, 3, 4]
+      :Minor
+    when [9, 3], [3, 9] # No fifth
+      :Minor
+    when [4, 4, 4]
+      :Augmented
+    when [3, 3, 6], [3, 6, 3], [6, 3, 3]
+      :Diminished
+    when [1, 4, 3, 4], [4, 3, 4, 1], [3, 4, 1, 4], [4, 1, 4, 3]
+      :'Major 7th'
+    when [2, 4, 3, 3], [4, 3, 3, 2], [3, 3, 2, 4], [3, 2, 4, 3]
+      :'Dominant 7th'
+    when [2, 4, 6], [4, 6, 2], [6, 2, 4]
+      :'Dominant 7th' # No fifth
+    when [2, 3, 4, 3], [3, 4, 3, 2], [4, 3, 2, 3], [3, 2, 3, 4]
+      :'Minor 7th'
+    when [3, 3, 3, 3]
+      :'Diminished 7th'
+    when [2, 3, 3, 4], [3, 3, 4, 2], [3, 4, 2, 3], [4, 2, 3, 3]
+      :'Half-Diminished 7th'
+    when [4, 2, 4, 2], [2, 4, 2, 4]
+      :'French Augmented 6th'
+    when [5, 7], [7, 5]
+      :'Perfect Fifth'
+    when [0]
+      :'Perfect Octave'
+    else
+      :'Unknown Chord'
+    end
+  end
+end
 
 class Chord
   attr_accessor :mistakes
-  attr_reader :pitch_set, :type, :intervals, :notes, :voices
+  attr_reader :pitches, :type, :chord_tones, :intervals, :notes, :voices
 
   def initialize(notes)
     @notes = notes
@@ -99,9 +153,9 @@ class Chord
       hash[note.voice] = note
       hash
     end
-    @pitch_set = notes.map { |note| note.pitch }
+    @pitches = notes.map { |note| note.pitch } 
     @intervals = self.get_intervals
-    @type = self.get_type
+    @chord_tones, @type = self.get_type
     self.fill_parts
     @mistakes = []
   end
@@ -119,7 +173,7 @@ class Chord
 
   # Find superfluous parts
   def doublings
-    pitches = @pitch_set.map { |pitch| pitch % 12 }
+    pitches = @pitches.map { |p| p % 12 }
     uniq_notes = @notes.uniq { |note| note.pitch % 12 }
     return uniq_notes.reduce([]) do |arr, note|
       arr + [note.part] * (pitches.count(note.pitch % 12) - 1)
@@ -137,68 +191,17 @@ class Chord
     end
   end
 
-  # Sort pitch classes and find intervals between consecutives.
-  def interval_loop
-    pitches = @pitch_set.map { |p| p % 12 }
-    pitches.uniq!
-    pitches.sort!
-    pitches << pitches[0] + 12 # To compare first and last pitches
-    interval_loop = []
-    pitches.each_cons(2) { |p, q| interval_loop << q - p }
-    return interval_loop
-  end
-  
   def get_type
-    case self.interval_loop
-    when [5, 4, 3], [4, 3, 5], [3, 5, 4]
-      return :Major
-    when [8, 4], [4, 8] # No fifth
-      return :Major
-    when [3, 4, 5], [4, 5, 3], [5, 3, 4]
-      return :Minor
-    when [9, 3], [3, 9] # No fifth
-      return :Minor
-    when [4, 4, 4]
-      return :Augmented
-    when [3, 3, 6], [3, 6, 3], [6, 3, 3]
-      return :Diminished
-    when [1, 4, 3, 4], [4, 3, 4, 1], [3, 4, 1, 4], [4, 1, 4, 3]
-      return :'Major 7th'
-    when [2, 4, 3, 3], [4, 3, 3, 2], [3, 3, 2, 4], [3, 2, 4, 3]
-      return :'Dominant 7th'
-    when [2, 4, 6], [4, 6, 2], [6, 2, 4]
-      return :'Dominant 7th' # No fifth
-    when [2, 3, 4, 3], [3, 4, 3, 2], [4, 3, 2, 3], [3, 2, 3, 4]
-      return :'Minor 7th'
-    when [3, 3, 3, 3]
-      return :'Diminished 7th'
-    when [2, 3, 3, 4], [3, 3, 4, 2], [3, 4, 2, 3], [4, 2, 3, 3]
-      return :'Half-Diminished 7th'
-    when [4, 2, 4, 2], [2, 4, 2, 4]
-      return :'French Augmented 6th'
-    when [5, 7], [7, 5]
-      return :'Perfect Fifth'
-    else
-      if @notes.length < 2
-        return :'Unknown Chord'
-      else
-        return self.inspect_unknown
-      end
+    poss_types = []
+    size = @notes.length
+    while (poss_types.length == 0)
+      subs = @notes.combination(size).map { |set| SubChord.new(set) }
+      pairs = subs.map { |sub| {notes: sub.notes, type: sub.get_type} }
+      poss_types += pairs.reject { |p| p[:type] == :'Unknown Chord' }
+      size += 1
     end
-  end
-
-  def inspect_unknown #TODO: Figure out recursive end-point. THIS IS SLOPPY
-    subchords = @notes.combination(@notes.length - 1).map do |set|
-      Chord.new(set)
-    end
-    guess = subchords.find { |chord| chord.type != :'Unknown Chord' }
-    if guess != nil
-      non_chord_tones = @notes.reject { |note| guess.notes.include? note }
-      non_chord_tones.each { |note| note.part = :error }
-      return guess.type
-    else
-      return :'Unknown Chord'
-    end
+    pair = poss_types.first # TODO: Algorithm to pick most likely type
+    return [pair[:notes], pair[:type]]
   end
 
   @@chord_possibilities = {
@@ -212,14 +215,14 @@ class Chord
     :'Diminished 7th' => 'n/a',
     :'Half-Diminished 7th' => [2, 5, 8, 10],
     :'Perfect Fifth' => [5, nil, 7, nil],
+    :'Perfect Octave' => [0, nil, nil, nil],
     :'Unknown Chord' => 'unknown'
   }
 
   def fill_parts
   values = @@chord_possibilities[@type]
-    @notes.each do |note|
-      next if note.part == :error
-      poss_int = @pitch_set.map { |p| (note.pitch - p) % 12 }
+    @chord_tones.each do |note|
+      poss_int = @pitches.map { |p| (note.pitch - p) % 12 }
       if @type == 'Diminished'
         if !poss_int.include?(3)
           poss_int = [3]
@@ -247,7 +250,7 @@ class Chord
   end
   
   def fill_non_chord_parts
-    non_chords = @notes.select { |note| note.part == :error }
+    non_chords = @notes - @chord_tones
     root = @notes.find { |note| note.part == :root }
     non_chords.each do |note|
       dist_from_root = (note.pitch - root.pitch) % 12
