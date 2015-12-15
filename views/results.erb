@@ -6,8 +6,8 @@
   <tr>
     <td>Chord #<%= i + 1 %><br><%= chord.get_name %></td>
     <td><ul>
-    <% chord.parts.reverse_each do |voice, part| %>
-      <li><b><%= voice.capitalize %>:</b> <%= part %></li>
+    <% chord.notes.reverse.each do |note| %>
+      <li><b><%= note.voice %>:</b> <%= note.part %></li>
     <% end %>
     </ul></td>
     <td><dl>

@@ -1,154 +1,162 @@
 class Mistake
+  attr_reader :type, :value
 
   def initialize(type, value)
     @type = type
     @value = value
   end
-
-  attr_reader :type, :value
 end
 
+
 module VoiceLead
-  
-  def VoiceLead.parallel(chord_a, chord_b, type)
-    parallel_possibilities = {'fifths' => 7, 'octaves' => 0, 'unisons' => 'U'}
-    interval = parallel_possibilities[type]
-    parallels = []
-    
-    # Creates array of index values containing desired interval (for chord_a.intervals)
-    if interval == 'U'
-      indexes = chord_a.intervals.each_index.select do |i|
-        chord_a.intervals[i][2] == 0
-      end
-    else
-      indexes = chord_a.intervals.each_index.select do |i|
-        chord_a.intervals[i][2] != 0 &&
-        chord_a.intervals[i][2] % 12 == interval
+
+  # =========================
+  # Errors between two chords
+  # =========================
+
+  # Check for parallel intervals of a given type.
+  def self.parallel(chord_a, chord_b, type)
+    poss_parallels = {fifths: 7, octaves: 0, unisons: 'U'}
+    error_int = poss_parallels[type]
+
+    # Select chord_a intervals that match 'interval'.
+    poss_errors = chord_a.intervals.select do |interval|
+      if error_int == 'U'
+        interval[:value] == 0
+      else
+        interval[:value] != 0 &&
+        interval[:value] % 12 == error_int
       end
     end
      
-    # Find parallel motion
-    parallels = indexes.select do |i|
-      chord_a.intervals[i][2] == chord_b.intervals[i][2] && 
-      chord_a.pitches[chord_a.intervals[i][0]] != chord_b.pitches[chord_b.intervals[i][0]]
+    # Find matching interval in chord_b, then compare values.
+    parallels = poss_errors.select do |int_a|
+      int_b = chord_b.intervals.find do |int_b|
+        int_b[:low].voice == int_a[:low].voice &&
+        int_b[:high].voice == int_a[:high].voice
+      end
+      int_b[:value] == int_a[:value] &&
+      int_b[:low].pitch != int_a[:low].pitch
     end
       
-    # Return mistake string
-    mistakes = []
-    parallels.each do |p| 
-      mistakes << Mistake.new("Parallel #{type.capitalize}", 
-        "Between the #{chord_b.intervals[p][0]} and #{chord_b.intervals[p][1]}")
+    # Return mistake(s) array.
+    return parallels.map do |p_int| 
+      Mistake.new(
+        "Parallel #{type}", 
+        "Between the #{p_int[:low].voice} and #{p_int[:high].voice}"
+      )
     end
+  end
+
+  # Check for proper downward resolution of 7ths.
+  def self.sevenths(chord_a, chord_b, _)
+    sevenths = chord_a.notes.select { |note| note.part == :seventh }
     
-    return mistakes
-  end
-
-  # Check for proper downward resolution of 7ths
-  def VoiceLead.sevenths(chord_a, chord_b, none)
-    return [] if chord_a.parts_reverse['seventh'].empty?
-        
-    mistakes = []
-    chord_a.parts_reverse['seventh'].each do |v|
-      leap = chord_a.pitches[v] - chord_b.pitches[v]
-      unless (1..2).include?(leap) && ['root', 'third', 'fifth'].include?(chord_b.parts[v])
-        mistakes << Mistake.new('Improperly resolved 7th', "In the #{v}")
-      end
+    bad_sevenths = sevenths.reject do |note_a|
+      note_b = chord_b.voices[note_a.voice]
+      leap = note_a.pitch - note_b.pitch
+      (1..2).include?(leap) &&
+      %i(root third fifth).include?(note_b.part)
     end
-    return mistakes
+
+    return bad_sevenths.map do |seventh|
+      Mistake.new(
+        'Improperly resolved 7th',
+        "In the #{seventh.voice}"
+      )
+    end
   end
   
-  # Check for proper contour in line
-  def VoiceLead.contour(chord_a, chord_b, none)
+  # Check for illegal intervals
+  def self.intervals(chord_a, chord_b, none)
+    bad_leaps = chord_a.notes.select do |note|
+      leap = (note.pitch - chord_b.voices[note.voice].pitch).abs
+      leap > 12 || leap == 6
+    end
+
+    return bad_leaps.map do |leap_note|
+      Mistake.new(
+        'Illegal interval',
+        "In the #{leap_note.voice}"
+      )
+    end
+  end
+
+  # ==========================
+  # Errors involving one chord
+  # ==========================
+
+  # Check for proper spacing between voices (excluding lowest voice).
+  def self.spacing(chord)
+    bad_spacings = chord.notes[1..-1].each_cons(2).select do |low, high|
+      interval = (high.pitch - low.pitch).abs
+      interval > 12
+    end
+
+    return bad_spacings.map do |lo_note, hi_note|
+      Mistake.new(
+        'Too much spacing',
+        "Between #{hi_note.voice} and #{lo_note.voice}"
+      )
+    end
+  end
+
+  # Check for voice-crossing.
+  def self.crossing(chord)
+    crossings = chord.intervals.select { |i| i[:value] < 0 }
+    
+    return crossings.map do |interval|
+      Mistake.new(
+        'Voice crossing',
+        "Between #{interval[:low].voice} and #{interval[:high].voice}"
+      )
+    end
+  end
   
-
-  end
-
-  # No illegal intervals
-  def VoiceLead.intervals(chord_a, chord_b, none)
-    mistakes = []
-    chord_a.pitches.each do |v, p|
-      leap = (chord_a.pitches[v] - chord_b.pitches[v]).abs
-      if leap > 12 || leap == 6
-        mistakes << Mistake.new('Illegal interval', "In the #{v}")
-      end
-    end
-    return mistakes
-  end
-
-  # Errors involving one chord at a time
-
-  # Check for proper spacing between voices
-  def VoiceLead.spacing(chord)
-    mistakes = []
-    [:soprano, :alto, :tenor].each_cons(2) do |v1, v2|
-      if chord.pitches[v1] - chord.pitches[v2] > 12
-        mistakes << Mistake.new('Too much spacing', "Between #{v1} and #{v2}")
-      end
-    end
-    return mistakes
-  end
-
-  # Check for voice-crossing
-  def VoiceLead.crossing(chord)
-    mistakes = []
-    chord.intervals.each do |i|
-      if i[2] < 0
-        mistakes << Mistake.new('Voice crossing', "Between #{i[0]} and #{i[1]}")
-      end
-    end
-    return mistakes
-  end
-
-  # Check that notes are within appropriate range
-  def VoiceLead.range(chord)
+  # Check that notes are within appropriate range.
+  def self.range(chord)
     range = {
-      soprano: (36..55),
-      alto: (31..48),
-      tenor: (24..43),
+      soprano: (36..60),
+      alto: (31..51),
+      tenor: (24..44),
+      baritone: (20..40),
       bass: (16..36)
     }
-    mistakes = []
-    chord.pitches.each do |voice, pitch|
-      unless range[voice].include? pitch
-        mistakes << Mistake.new('Exceeds range', "#{voice}")
-      end
-    end 
-    return mistakes
+    err_notes = chord.notes.reject { |n| range[n.voice].include? n.pitch }
+    
+    return err_notes.map do |note|
+      Mistake.new(
+        'Exceeds range',
+        "#{note.voice}"
+      )
+    end
   end 
   
-  # Check for appropriate doubling
-  def VoiceLead.doubling(chord)
-    mistakes = []
-    return mistakes if chord.doubled.empty?
+  # Check for appropriate doubling.
+  # TODO: Check for doubled leading tone.
+  def self.doubling(chord)
+    return [] if chord.doublings.empty?
 
-    if chord.doubled.length > 1
-      mistakes << Mistake.new('Doubling', 'Chord incomplete; too many doublings')
-      return mistakes
+    error_msgs = []
+
+    if chord.notes.length - chord.doublings.length < 3
+      error_msgs << 'Chord incomplete; too many doublings'
     end
 
-    doubled = chord.doubled[0]
-    case chord.low_part
-    when 'root'
-      unless doubled == 'root'
-        mistakes << Mistake.new('Doubling', 'Root should be doubled')
-      end
-    when 'third'
-      unless doubled == chord.parts[:soprano] 
-        mistakes << Mistake.new('Doubling', 'Soprano note should be doubled')
-      end
-    when 'fifth'
-      unless doubled == 'fifth'
-        mistakes << Mistake.new('Doubling', 'Fifth should be doubled')
-      end
-    when 'seventh'
-      unless doubled == 'root'
-        mistakes << Mistake.new('Doubling', 'Only root may be doubled in 7th chord')
-      end
-    end
+    rules = {
+      root: [:root, 'Root'],
+      third: [chord.hi_part, 'Highest note'],
+      fifth: [:fifth, 'Fifth'],
+      seventh: [:root, 'Root'],
+      unknown: [:unknown, 'Unknown'],
+      error: [:error, 'Error']
+    }
+    unless chord.doublings.include? rules[chord.low_part][0]
+      error_msgs << "#{rules[chord.low_part][1]} should be doubled"
+    end 
     
-    # check for doubled leading tone
-
-    return mistakes
+    return error_msgs.map do |msg|
+      Mistake.new( 'Doubling', msg )
+    end
   end
-
 end

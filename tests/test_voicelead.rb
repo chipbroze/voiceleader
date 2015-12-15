@@ -1,4 +1,4 @@
-require "./lib/VoiceLeader/voicelead.rb"
+require "./lib/voiceleader/voicelead.rb"
 require "test/unit"
 
 class TestVoiceLead < Test::Unit::TestCase

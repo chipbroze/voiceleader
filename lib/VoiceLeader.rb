@@ -1,5 +1,5 @@
-require './lib/VoiceLeader/chord.rb'
-require './lib/VoiceLeader/voicelead.rb'
+require './lib/voiceleader/chord.rb'
+require './lib/voiceleader/voicelead.rb'
 require './data/database.rb'
 require 'bcrypt'
 
@@ -18,9 +18,9 @@ def find_mistakes(music, options)
   end
 
   pair_options = {
-    'p_fifths' => [:parallel, 'fifths'],
-    'p_octaves' => [:parallel, 'octaves'],
-    'p_unisons' => [:parallel, 'unisons'],
+    'p_fifths' => [:parallel, :fifths],
+    'p_octaves' => [:parallel, :octaves],
+    'p_unisons' => [:parallel, :unisons],
     'sevenths' => [:sevenths, 'none'],  # unsure how to call variable arguments in loop
     'intervals' => [:intervals, 'none']
   }

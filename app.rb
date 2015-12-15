@@ -1,6 +1,6 @@
 require 'sinatra'
 require 'json'
-require './lib/VoiceLeader.rb'
+require './lib/voiceLeader.rb'
 
 # set :port, 4567
 # set :environment, :production
