@@ -4,7 +4,7 @@
   <tr><th>Chord</th><th>Voices</th><th>Errors</th></tr>
   <% music.chords.each_with_index do |chord, i| %>
   <tr>
-    <td>Chord #<%= i + 1 %><br><%= chord.get_name %></td>
+    <td>Chord #<%= i + 1 %><br><%= chord.get_name %>, <%= chord.chord_tones.map { |note| note.name } %></td>
     <td><ul>
     <% chord.notes.reverse.each do |note| %>
       <li><b><%= note.voice %>:</b> <%= note.part %></li>
