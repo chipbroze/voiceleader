@@ -1,6 +1,6 @@
 # ===========
 # Music Class
-#============
+# ===========
 
 class Music
   attr_reader :chords, :key
@@ -13,6 +13,15 @@ class Music
     @chords = self.make_chords
   end
 
+  # Group chords for error-checking
+  def chord_pairs
+    pairs = []
+    @chords.each_cons(2) { |c, d| pairs << [c, d] }
+    return pairs
+  end
+
+  protected
+
   # Align rhythms and create chords.
   def make_chords
     chords = self.homophonic.reverse.transpose
@@ -23,13 +32,6 @@ class Music
   def homophonic
     smallest = 1
     return @voices.map { |voice| voice.split_into(smallest) }
-  end
-
-  # Group chords for error-checking
-  def chord_pairs
-    pairs = []
-    @chords.each_cons(2) { |c, d| pairs << [c, d] }
-    return pairs
   end
 end
 
@@ -75,7 +77,9 @@ class Note
     @voice = voice
     @part = nil
   end
-  
+
+  protected
+
   # Parse note name into letter/octave/accidental.
   def parse_name(full_name)
     letter = full_name[0].upcase
@@ -84,17 +88,17 @@ class Note
     return letter, octave, accidental
   end
 
+  # Class hashes for #get_pitch method
+  @@letters = { 'C' => 0, 'D' => 2, 'E' => 4,
+                'F' => 5, 'G' => 7, 'A' => 9, 'B' => 11 }
+  @@accidentals = { '' => 0, '#' => 1, 'x' => 2, 'b' => -1, 'bb' => -2 }
+
   # Convert note name components into pitch class integer.
   def get_pitch
     12 * (@octave - 1) + @@letters[@letter] + @@accidentals[@accidental]
   end
-
-  # Set class variables.
-  @@letters = {
-    'C' => 0, 'D' => 2, 'E' => 4,
-    'F' => 5, 'G' => 7, 'A' => 9, 'B' => 11
-  }
-  @@accidentals = { '' => 0, '#' => 1, 'x' => 2, 'b' => -1, 'bb' => -2 }
+  
+  # Hash mapping note type to beat length.
   @@types = { 'quarter' => 1, 'half' => 2, 'whole' => 4 }
 end
 
@@ -104,23 +108,95 @@ end
 
 class Chord
   attr_accessor :mistakes
-  attr_reader :pitches, :type, :chord_tones, :intervals, :notes, :voices
+  attr_reader :notes, :pitches, :voices, :intervals, :core_notes, :type
 
   def initialize(notes)
     @notes = notes
-    @voices = notes.reduce({}) do |hash, note|
+    @pitches = notes.map { |note| note.pitch }
+    @pitch_set = notes.map { |note| note.pitch % 12 }.uniq
+    @voices = self.get_voices_hash
+    @intervals = self.get_intervals
+    @core_notes, @type = self.get_core_notes_and_type
+    @mistakes = []
+    self.set_notes_parts
+  end
+
+  # Build chord name from root note and chord type.
+  def name
+    return "#{self.root.name} #{@type}"
+  end
+
+  # Return root of chord
+  def root
+    return @notes.find { |note| note.part == :root } || self.low_note
+  end
+
+  # Find highest and lowest notes
+  def low_note
+    return @notes.min_by { |note| note.pitch } 
+  end
+
+  def high_note
+    return @notes.max_by { |note| note.pitch }
+  end
+
+  # Get inversion type
+  def inversion
+    inversions = {
+      root:    :root_position,
+      third:   :first_inversion,
+      fifth:   :second_inversion,
+      seventh: :third_inversion
+    }
+    inversions.default = :unknown_inversion
+    return inversions[self.low_note.part]
+  end
+
+  # Find superfluous parts.
+  def doublings
+    pitches = @pitches.map { |p| p % 12 }
+    uniq_notes = @notes.uniq { |note| note.pitch % 12 }
+    return uniq_notes.reduce([]) do |arr, note|
+      arr + [note.part] * (pitches.count(note.pitch % 12) - 1)
+    end
+  end
+
+  protected
+
+  # Map notes to their respective voices.
+  def get_voices_hash
+    @notes.reduce({}) do |hash, note|
       hash[note.voice] = note
       hash
     end
-    @pitches = notes.map { |note| note.pitch }
-    @pitch_set = notes.map { |note| note.pitch % 12 }.uniq
-    @intervals = self.get_intervals
-    @chord_tones, @type = self.get_type
-    @mistakes = []
-    self.fill_parts
   end
 
-  # Create loops hash for finding chord type
+  # Get array of hashes containing interval data
+  def get_intervals
+    @notes.combination(2).map do |low_voice, high_voice|
+      {
+        low:   low_voice,
+        high:  high_voice,
+        value: high_voice.pitch - low_voice.pitch
+      }
+    end
+  end
+ 
+  # Determine chord type by gradually testing smaller subchords
+  def get_core_notes_and_type
+    possibles = []
+    size = @notes.length
+    while (possibles.length == 0)
+      pairs = @notes.combination(size).map do |set|
+        [set, self.get_poss_type(set)]
+      end
+      possibles += pairs.reject { |_, type| type == :'unknown chord' }
+      size -= 1
+    end
+    return possibles.first # TODO: Algorithm to pick most likely type
+  end
+
+  # Create loops hash for use with #get_poss_type method
   @@loops = Hash.new(:'unknown chord')
   @@types = {
     :'major' => [543, 435, 354, 8, 4],
@@ -158,72 +234,36 @@ class Chord
     end
     return @@loops[interval_loop]
   end
+ 
+  # TODO: Complete alternate type ID algorithm
+  def get_poss_type_alt(note_set)
+  
 
-# Find inversion of chord
-  def low_part
-    low_note = @notes.min_by { |note| note.pitch } 
-    return low_note.part
+
   end
 
-  def hi_part
-    high_note = @notes.max_by { |note| note.pitch }
-    return high_note.part
-  end
-
-  # Find superfluous parts
-  def doublings
-    pitches = @pitches.map { |p| p % 12 }
-    uniq_notes = @notes.uniq { |note| note.pitch % 12 }
-    return uniq_notes.reduce([]) do |arr, note|
-      arr + [note.part] * (pitches.count(note.pitch % 12) - 1)
-    end
-  end
-
-  # Get array of hashes containing interval data
-  def get_intervals
-    @notes.combination(2).map do |low, high|
-      interval = {
-        low: low,
-        high: high,
-        value: high.pitch - low.pitch
-      }
-    end
-  end
-
-  def get_type
-    poss_types = []
-    size = @notes.length
-    while (poss_types.length == 0)
-      pairs = @notes.combination(size).map do |set|
-        { notes: set, type: self.get_poss_type(set) }
-      end
-      poss_types += pairs.reject { |p| p[:type] == :'unknown chord' }
-      size -= 1
-    end
-    pair = poss_types.first # TODO: Algorithm to pick most likely type
-    return [pair[:notes], pair[:type]]
-  end
-
+  # Chord data for #set_notes_parts method
   @@chord_possibilities = {
-    :'major' => [8, 4, 7, nil],
-    :'minor' => [9, 3, 7, nil],
-    :'augmented' => 'n/a',
-    :'diminished' => [3, 6, 9, nil],
-    :'major 7th' => [1, 9, 3, 11],
-    :'dominant 7th' => [2, 4, 7, 10],
-    :'minor 7th' => [2, 8, 4, 10],
-    :'diminished 7th' => 'n/a',
+    :'major' =>               [8, 4, 7, nil],
+    :'minor' =>               [9, 3, 7, nil],
+    :'diminished' =>          [3, 6, 9, nil],
+    :'augmented' =>           :unknown,
+    :'major 7th' =>           [1, 9, 3, 11],
+    :'dominant 7th' =>        [2, 4, 7, 10],
+    :'minor 7th' =>           [2, 8, 4, 10],
+    :'diminished 7th' =>      :unknown,
     :'half-diminished 7th' => [2, 5, 8, 10],
-    :'perfect fifth' => [5, nil, 7, nil],
-    :'perfect octave' => [0, nil, nil, nil],
-    :'unknown chord' => 'unknown'
+    :'perfect fifth' =>       [5, nil, 7, nil],
+    :'perfect octave' =>      [0, nil, nil, nil],
+    :'unknown chord' =>       :unknown
   }
 
-  def fill_parts
-  values = @@chord_possibilities[@type]
-    @chord_tones.each do |note|
-      poss_int = @chord_tones.map { |n| (note.pitch - n.pitch) % 12 }
-      if @type == :Diminished
+  # Set notes' 'part' attribute based on chord-type
+  def set_notes_parts
+    values = @@chord_possibilities[@type]
+    @core_notes.each do |note|
+      poss_int = @core_notes.map { |n| (note.pitch - n.pitch) % 12 }
+      if @type == :diminished
         if !poss_int.include?(3)
           poss_int = [3]
         elsif !poss_int.include?(6)
@@ -232,7 +272,7 @@ class Chord
           poss_int = [9]
         end
       end 
-      if values == 'n/a' || values == 'unknown'
+      if values == :unknown
         note.part = :unknown
       elsif poss_int.include?(values[0])
         note.part = :root
@@ -240,7 +280,7 @@ class Chord
         note.part = :third
       elsif poss_int.include?(values[2])
         note.part = :fifth
-      elsif values[3] && poss_int.include?(values[3])
+      elsif poss_int.include?(values[3])
         note.part = :seventh
       else
         note.part = :error
@@ -249,21 +289,14 @@ class Chord
     self.fill_non_chord_parts
   end
 
-  @@non_chord_types = [:root, :b9, :'9', :b3, :'3', :'4', :tt, :'5', :b6, :'6', :b7, :'7', :unknown]
+  @@non_chord_types = [:root, :b9, :'9', :b3, :'3', :'4', :tt,
+                       :'5', :b6, :'6', :b7, :'7', :unknown]
 
   def fill_non_chord_parts
-    non_chords = @notes - @chord_tones
-    root = @notes.find { |note| note.part == :root }
+    non_chords = @notes - @core_notes
     non_chords.each do |note|
-      dist_from_root = (note.pitch - root.pitch) % 12
+      dist_from_root = (note.pitch - self.root.pitch) % 12
       note.part = @@non_chord_types[dist_from_root]
     end
   end
-
-  # Get note name of chord root, or if unknown, the lowest voice
-  def get_name
-    root = @notes.find { |note| note.part == :root } || @notes[0]
-    return "#{root.name} #{@type}"
-  end
-
 end

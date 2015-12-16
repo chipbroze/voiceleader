@@ -220,7 +220,6 @@ function changeNoteType(node, direction) {
 }
 
 function addNewNote(noteDiv, where) {
-  where = where || null;
   if (activeNode && activeNode.parentNode === noteDiv) {
     var a = activeNode.note;
   } else {
@@ -268,6 +267,10 @@ function changeAccidental(node, direction) {
   drawNote(note, node, ['accidental']);
   return true;
 }
+
+/**
+ * User Interaction : Event Listeners
+ */
 
 function makeMusicEditor(elemId, musicObj) {
   var editor = document.getElementById(elemId);
@@ -328,24 +331,56 @@ function makeMusicEditor(elemId, musicObj) {
     return false;
   }, false);
   
-  editor.addEventListener('click', function(e) {
+  editor.addEventListener('mousedown', function(e) {
     e = e || window.event;
     var target = e.target || e.srcElement;
-    if (!target) {
+    switch (target.className) {
+    case 'note-img':
+    case 'ledger':
+      makeActive(target.parentNode);
+      break;
+    case 'accidental':
+      target = target.parentNode;
+    case 'note':
+      var where = target.note.staff.notes.indexOf(target.note);
+      addNewNote(target.parentNode, where);
+      break;
+    case 'note-div':
+      addNewNote(target);
+      break;
+    case 'staff':
+      addNewNote(target.noteDiv);
+      break;
+    default:
+      break;
+    }
+  });
+
+  // Dragging
+  var startMouseY = null;
+  var dragImg = document.createElement('img');
+  dragImg.src = IMAGE_DIR + 'drag-img.png';
+
+  editor.addEventListener('dragstart', function(e) {
+    e = e || window.event;
+    var target = e.target || e.srcElement;
+    if (target.className !== 'note-img') {
+      e.preventDefault();
       return false;
     }
-    else if (target.className !== 'note') {
-      if (target.parentNode.className === 'note')
-        target = target.parentNode;
-      else if (target.className === 'staff')
-        addNewNote(target.noteDiv);
-      else if (target.className === 'noteDiv')
-        addNewNote(target);
-      else
-        target = null;
+    startMouseY = e.clientY;
+    e.dataTransfer.setDragImage(dragImg, 0, 0);
+  });
+
+  editor.addEventListener('drag', function(e) {
+    e = e || window.event;
+    var target = e.target || e.srcElement;
+    target = target.parentNode;
+    var distance = Math.floor((e.clientY - startMouseY) / SPACE);
+    if (distance !== 0) {
+      moveNote(target, distance * -1);
+      startMouseY += distance * SPACE;
     }
-    if (target && target.className === 'note') {
-      makeActive(target);
-    }
-  }, false);  
+  });
+
 }

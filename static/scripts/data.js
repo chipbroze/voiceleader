@@ -60,6 +60,7 @@ function Staff(voice, clef, music) {
 // establish default note values based on clef
 // if no name given, align accidental with key
 Staff.prototype.addNote = function(name, type, rest, exps, chromatic, where) {
+  where = where === undefined ? this.notes.length: where;
   var defaultNote = {
     treble: ['B', '4'],
     tenor: ['B', '3'],
@@ -67,7 +68,6 @@ Staff.prototype.addNote = function(name, type, rest, exps, chromatic, where) {
   };
   var def = defaultNote[this.clef];
   name = name || inheritAccidental(def[0], this.music.key) + def[1];
-  where = where || this.notes.length;
   var note = new Note(name, type, rest, this, exps, chromatic);
   this.notes.splice(where, 0, note);
   return note;

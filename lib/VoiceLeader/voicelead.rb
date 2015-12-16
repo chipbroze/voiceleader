@@ -144,15 +144,14 @@ module VoiceLead
     end
 
     rules = {
-      root: [:root, 'Root'],
-      third: [chord.hi_part, 'Highest note'],
-      fifth: [:fifth, 'Fifth'],
-      seventh: [:root, 'Root'],
-      unknown: [:unknown, 'Unknown'],
-      error: [:error, 'Error']
+      root_position:     [:root, 'Root'],
+      first_inversion:   [chord.high_note.part, 'Highest note'],
+      second_inversion:  [:fifth, 'Fifth'],
+      third_inversion:   [:root, 'Root'],
+      unknown_inversion: [:unknown, 'Unknown'],
     }
-    unless chord.doublings.include? rules[chord.low_part][0]
-      error_msgs << "#{rules[chord.low_part][1]} should be doubled"
+    unless chord.doublings.include? rules[chord.inversion][0]
+      error_msgs << "#{rules[chord.inversion][1]} should be doubled"
     end 
     
     return error_msgs.map do |msg|

@@ -338,6 +338,7 @@ function createNote(note, noteDiv) {
   node.style.width = BEAT + 'px';
    
   node.noteImg = document.createElement('img');
+  node.noteImg.setAttribute('class', 'note-img');
   node.ledgers = document.createElement('div');
   node.accidental = document.createElement('img');
   node.accidental.setAttribute('class', 'accidental');
