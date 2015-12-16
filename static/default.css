@@ -11,6 +11,7 @@ img { vertical-align: top }
 
 body {
   background-color: #660066;
+  background-image: url('/images/bg-score.jpg');
   color: black;
   margin: 0px;
   font-size: 16px;
@@ -39,15 +40,35 @@ p {
   line-height: 1.5em;
   margin-bottom: 1.5em;
 }
-
-a:hover {
+a {
+  color: yellow;
   text-decoration: none;
+}
+a:hover {
+  color: white;
 }
 
 /**
  * Forms
  */
 
+label {
+  color: white;
+  font-size: 0.8em;
+}
+button {
+  background-color: #665566;
+  color: white;
+  font-size: 0.8em;
+  padding: 0.3em 10px;
+}
+button:hover {
+  background-color: #776677;
+}
+button:focus {
+  outline: none;
+}
+/*
 fieldset {
   border: 0px dashed #660066;
   border-radius: 5px;
@@ -87,58 +108,8 @@ textarea {
   resize: none;
   overflow: auto;
 }
-
-button {
-  background-color: #660066;
-  display: block;
-  color: white;
-  font-size: 0.8em;
-  margin: 1em 0 1.5em 0;
-  padding: 0.3em 50px;
-}
-button:hover {
-  background-color: #771177;
-}
-button:focus {
-  outline: none;
-}
-#editor-tools {
-  width: 80%;
-  clear: both;
-  margin: 0 auto;
-  font-size: 0;
-}
-.editor-btn {
-  display: inline-block;
-  background-color: #999999;
-  box-sizing: border-box;
-  width: 25%;
-  margin: 0;
-  padding: 5px 20px;
-  font-size: 12px;
-}
-.editor-btn:hover {
-  background-color: #AAAAAA;
-}
-#save-music {
-  background-color: #660066;
-}
-#save-music:hover {
-  background-color: #771177;
-}
-
-#score-data {
-  margin: 10px;
-}
-.flat-title {
-  background-color: #FFEEDD;
-  font-size: 1.5em;
-}
-.flat-details {
-  background-color: #FFEEDD;
-  font-size: 1em;
-  height: 3.5em;
-}
+*/
+/*
 .del-score {
   display: inline-block;
   position: absolute;
@@ -154,26 +125,29 @@ button:focus {
  */
 
 header {
-  background-color: #660066;
-  padding: 20px 10px 20px 10px;
-  height: 130px;
-  border-bottom: 0px solid black;
-  overflow: hidden;
-}
-
-header a {
-  color: yellow;
+  background-color: rgba(80, 0, 100, 0.9);
+  border-bottom: 1px solid #220033;
+  height: 75px;
+  position: absolute;
+  top: 0px;
+  width: 100%;
 }
 
 #banner {
-  margin-top: 40px;
+  margin: 5px 20px;
+  width: 300px;
 }
 
-#session label, #session input, #session p {
+#session {
+  display: inline-block;
+  float: right;
   color: white;
+  margin: 25px 20px 0 0;
 }
 #session input {
   color: black;
+  margin: 0;
+  padding: 0;
 }
 
 /**
@@ -181,8 +155,10 @@ header a {
  */
 
 article {
-  overflow: hidden;
-  margin-bottom: 10px;
+  padding-bottom: 100px;
+  position: absolute;
+  top: 120px;
+  width: 100%;
 }
 
 .left-body {
@@ -217,6 +193,9 @@ footer {
   padding-bottom: 10px;
   margin: 0;
 }
+p.foot {
+  margin: 0;
+}
 
 /****************************************************************************
  * Unsorted
@@ -228,13 +207,6 @@ footer {
 
 .hide {
   display: none;
-}
-article {
-  background: white;
-  padding-top: 20px;
-}
-div#session {
-  float: right;
 }
 
 .float {
@@ -252,26 +224,31 @@ div#voice_input label {
   margin-right: 6px;
   text-align: right;
 }
-table.chords {
+
+/**
+ * Analysis Results Page
+ */
+
+.results-table {
   width: 100%;
   background: #BB66BB;
 }
-table.chords th {
+.results-table th {
   background: black;
   color: white;
 }
-table.chords td {
+.results-table td {
   vertical-align: top;
   background: #DDDDDD;
 }
-table.chords ul {
+.results-table ul {
   list-style-type: none;
   margin: 0;
   padding: 0;
 }
-p.foot {
-  margin: 0;
-}
+
+/* Unsorted */
+
 form legend {
   font-weight: bold;
 }
@@ -286,73 +263,102 @@ dt {
 }
 dd {
   color: #222222;
-  font-style: italic;
+  font-style:italic;
   margin: 0 0 12px 0;
 }
 
 /**
- * Music Editor
+ * Score Editor
  */
-
-#editor {
-  padding-top: 20px;
-  margin-bottom: 20px;
-  border: 0px solid black;
-  border-radius: 25px;
-  background-color: #FFCC99;
+#score-editor {
+  margin: 0 auto;
+  width: 900px;
 }
-
-#music-input {
+#editor-tools {
+  background-color: rgba(80, 0, 100, 0.9);
+  bottom: 0px;
+  height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: fixed;
   width: 100%;
-  margin-bottom: 0px; 
+}
+.editor-btn {
+  height: 35px;
+  width: 200px;
+  margin: 0 10px;
+}
+#score-data {
+  background-color: rgba(80, 0, 100, 0.9);
+  border-radius: 10px 10px 0 0;
+  height: 30px;
+  padding: 10px;
+}
+#score-data label {
+  margin-left: 30px;
+}
+.flat-details {
+  display: none;
+}
+.flat-title {
+  font-size: 0.9em;
+  padding: 5px;
+  width: 200px;
+}
+#music-input {
+  background-color: rgba(255, 255, 255, 0.95);
+  border-radius: 0 0 10px 10px;
   overflow-x: auto;
   overflow-y: hidden;
   white-space: nowrap;
+  width: 100%;
 }
 #music-input:focus {
   outline: none;
-  /*box-shadow: 0 0 3px 1px #660066;*/
 }
-
-a.staff {
+.staff {
   box-sizing: border-box;
   height: 49px;
   max-height: 49px; 
   display: block;
-  background-color: #FFEEDD;
   background-image: url(images/staff-background.png);
   background-repeat: repeat-x;
   position: relative;
-  margin: 60px 0 60px 0;
+  margin: 60px 20px 60px 20px;
   border-right: 5px double black;
   border-left: 1px solid black;
 }
-a.staff img {
-  position: relative;
+.staff p {
+  color: black;
+}
+.staff img {
   display: inline;
   vertical-align: top;
 }
-a.staff div {
+.staff div {
   position: relative;
   display: inline-block;
   vertical-align: top;
 }
-a.staff img.clef {
+.clef {
+  position: relative;
   width: 41px;
 }
-a.staff div.key-sig {
+.key-sig {
   display: inline-block;
   margin-right: 8px;
   margin-left: 4px;
 }
-a.staff div.key-sig img {
-  width: 15px;
+.key-sig img {
+  position: relative;
   margin-left: -5px;
+  width: 15px;
 }
-a.staff div.time-sig {
+.time-sig {
   margin-right: 8px; 
 }
-a.staff div.time-sig p {
+.time-sig p {
   font-size: 24px;
   font-family: 'impact';
   display: block;
@@ -360,17 +366,18 @@ a.staff div.time-sig p {
   padding: 0;
   line-height: 1;
 }
-a.staff div.note {
+.note {
   z-index: 1;
 }
-a.staff div.note img {
-  width: 20px;
-}
-a.staff div.note img.accidental {
+.accidental {
+  position: relative;
   width: 15px;
 }
-a.staff img.ledger {
+.ledger {
   position: absolute;
+  width: 20px;
 }
-a.staff img.note-img {
+.note-img {
+  position: relative;
+  width: 20px;
 }

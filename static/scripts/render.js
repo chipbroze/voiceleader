@@ -5,6 +5,7 @@
 var IMAGE_DIR = '/images/'; // path for image sources
 var activeNode = null; // attach this to musNode??
 var SPACE = 6;             // distance from line to space in staff
+var STAFF_MARGIN = 40      // css margin on left + right of staff
 var BEAT = 40;             // width of div.note class
 var TOP = {                // various height offsets for css 'top' attribute
   keySig :   9,
@@ -178,7 +179,7 @@ function fillNotes(musNode, music) {
  * @param {node} musNode: Music editor element.
  */
 function resetMusicWidth(musNode) {
-  var width = musNode.clientWidth;
+  var width = musNode.clientWidth - STAFF_MARGIN;
   for (var s = 0, len = musNode.childNodes.length; s < len; s++) {
     var noteDiv = musNode.childNodes[s].noteDiv;
     width = Math.max(width, noteDiv.offsetLeft + noteDiv.offsetWidth);

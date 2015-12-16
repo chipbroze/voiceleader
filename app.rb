@@ -2,7 +2,7 @@ require 'sinatra'
 require 'json'
 require './lib/voiceLeader.rb'
 
-# set :port, 4567
+# set :port, 4568
 # set :environment, :production
 set :static, true
 set :public_folder, "static"
@@ -13,7 +13,9 @@ enable :sessions
 # Index, Sign-in, Logout ====================================================
 
 get '/?' do
-  erb :index
+  erb :new_score do
+    erb :editor
+  end
 end
 
 post '/signup' do

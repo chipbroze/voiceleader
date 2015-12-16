@@ -1,16 +1,12 @@
+<div id="score-editor">
 
-<div id="editor">
-
+<!-- Score Data -->
 <div id="score-data">
-<div class="left-body">
-<label for="score-title">Title</label>
-<input id="score-title" type="text" name="title" class="flat-title" 
-  value="<%= @title %>" />
-<label for="score-details">Details</label>
-<textarea id="score-details" name="details"
-  class="flat-details"><%= @details %></textarea>
-</div>
-<div class="right-body">
+  <label for="score-title">Title</label>
+  <input id="score-title" type="text" name="title" class="flat-title" 
+    value="<%= @title %>" />
+  <textarea id="score-details" name="details"
+    class="flat-details"><%= @details %></textarea>
   <label for="key">Key</label>
   <select id="key" name="key"></select>
   <label for="timeSig">Meter</label>
@@ -18,10 +14,11 @@
   <label for="tempo">Tempo</label>
   <select id="tempo" name="tempo"></select>
 </div>
-</div>
 
-<!-- Music Editor -->
+<!-- Music Input -->
 <div id="music-input"></div>
+
+</div>
 
 <!-- Editor Toolbox -->
 <div id="editor-tools">
@@ -29,8 +26,6 @@
 <button id="clear-music" class="editor-btn" type="button">Clear</button>
 <button id="melody-gen" class="editor-btn" type="button">Melody Generator</button>
 <button id="save-music" class="editor-btn" type="submit">Save Score</button>
-</div>
-
 </div>
 
 <!-- Javascripts -->

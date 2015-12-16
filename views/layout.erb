@@ -14,14 +14,12 @@
 <body>
 
 <header>
-<div class="center-body">
-  <div class="float-left">
-    <a href="/"><img src="/images/logo.png" id="banner" alt="VoiceLeader"></a>
-  </div>
+  <a href="/"><img src="/images/logo.png" id="banner" alt="VoiceLeader"></a>
   <div id="session">
   <% if session[:username] %>
-    <p>Signed in as<br><b><%= session[:username] %></b></p>
-    <a href="/scores">My Scores</a> | <a href="/scores/new">New Score</a><br>
+    <b><%= session[:username] %>: </b>
+    <a href="/scores">Scores</a> |
+    <a href="/scores/new">New Score</a> | 
     <a href="/logout">Logout</a>
   <% else %>
     <form id="login" action="/login" method="POST">
@@ -33,20 +31,9 @@
     </form>
   <% end %>
   </div>
-</div>
 </header>
 
-<article>
-<div class="center-body">
-
 <%= yield %>
-
-</div>
-</article>
-
-<footer>
-  <p class="foot">VoiceLeader: copyright 2015</p>
-</footer>
 
 </body>
 </html>
