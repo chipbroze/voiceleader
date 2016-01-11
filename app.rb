@@ -50,8 +50,8 @@ end
 
 post '/scores' do
   if session[:username]
-    MyData.add_score(session[:username], params)
-    'Successfully saved'
+    score = MyData.add_score(session[:username], params)
+    score[:id].to_s
   else
     'Error: You are not signed in!'
   end

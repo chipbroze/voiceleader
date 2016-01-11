@@ -99,7 +99,13 @@ function makeFormSubmit(buttonId, formId, editorId) {
     var xReq = new XMLHttpRequest();
     xReq.addEventListener('load', function(e) {
       var txt = this.responseText;
-      alert(txt);
+      if (method === 'POST' && txt.length < 15) {
+        alert('Score saved');
+        form.id.value = txt;
+      }
+      else {
+        alert(txt);
+      }
     });
     xReq.open(method, path);
     xReq.send(formData);
