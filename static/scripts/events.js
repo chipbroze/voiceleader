@@ -2,10 +2,11 @@
  * BUTTONS AND INPUT
  */ 
 
-function makePlayButton(buttonId, editorId, music, audio) {
+function makePlayButton(buttonId, editorId, audio) {
   var button = document.getElementById(buttonId);
   var musNode = document.getElementById(editorId);
   button.addEventListener('click', function() {
+    var music = musNode.music;
     if (button.innerHTML === "Stop Music") {
       button.innerHTML = "Play Music";
       clearTimeout(audio.playing);
@@ -22,37 +23,37 @@ function makePlayButton(buttonId, editorId, music, audio) {
   });
 }
 
-function makeClearButton(buttonId, editorId, music) {
+function makeClearButton(buttonId, editorId) {
   var button = document.getElementById(buttonId);
   var musNode = document.getElementById(editorId);
   button.addEventListener('click', function() {
     clearNotes(musNode);
-    music.clear();
+    musNode.music.clear();
   });
 }
 
-function makeSelector(id, editorId, music, options, changeFunc) {
+function makeSelector(id, editorId, options, changeFunc, defalt) {
   var selector = document.getElementById(id);
   for (var i = 0, len = options.length; i < len; i++) {
     var option = document.createElement('option');
     var textNd = document.createTextNode(options[i][1]);
     option.value = options[i][0];
-    if (option.value == music[id]) {
-      option.selected = 'selected';
-    }
     option.appendChild(textNd);
     selector.appendChild(option);
+    if (defalt) {
+      selector.value = defalt;
+    }
   }
-  
   var musNode = document.getElementById(editorId);
   selector.addEventListener('change', function() {
-    return changeFunc(selector, musNode, music);
+    return changeFunc(selector, musNode);
   });
 }
 
-function keyChange(selector, musNode, music) { 
+function keyChange(selector, musNode) {
+  var music = musNode.music;
   music.key = selector.value;
-  makeKeySig(music, musNode);
+  makeKeySig(musNode, music);
   for (var i = 0, len = musNode.childNodes.length; i < len; i++) {
     var staffNode = musNode.childNodes[i];
     var noteNodes = staffNode.noteDiv.childNodes;
@@ -65,30 +66,61 @@ function keyChange(selector, musNode, music) {
   }
 }
 
-function timeChange(selector, musNode, music) { 
+function timeChange(selector, musNode) {
+  var music = musNode.music;
   music.timeSig = selector.value;
-  makeTimeSig(music, musNode);
+  makeTimeSig(musNode, music);
   for (var i = 0, len = musNode.childNodes.length; i < len; i++) {
     var staffNode = musNode.childNodes[i];
     drawTimeSig(staffNode.staff, staffNode);
   }
 }
 
-function tempoChange(selector, musNode, music) {
+function tempoChange(selector, musNode) {
+  var music = musNode.music;
   music.tempo = parseInt(selector.value);
 }
 
 
 // New plan: Store title, details, and music-json
-function makeFormSubmit(formId, musicObj) {
+// TODO: Update score ID upon first save
+function makeFormSubmit(buttonId, formId, editorId) {
+  var button = document.getElementById(buttonId);
   var form = document.getElementById(formId);
-  var input = document.createElement('input');
-  input.setAttribute('type', 'hidden');
-  input.setAttribute('name', 'music');
-  form.appendChild(input);
-  form.addEventListener('submit', function() {
-    input.value = musicObj.JSONify();
-    return true;
+  var editor = document.getElementById(editorId);
+  button.addEventListener('click', function(e) {
+    e.preventDefault();
+    var music = editor.music.JSONify();
+    var formData = new FormData(form);
+    formData.append('music', music);
+    var id = document.getElementById('score-id').value;
+    var method = id === 'new' ? 'POST' : 'PUT';
+    var path = id === 'new' ? '/scores' : '/scores/' + id;
+    var xReq = new XMLHttpRequest();
+    xReq.addEventListener('load', function(e) {
+      var txt = this.responseText;
+      alert(txt);
+    });
+    xReq.open(method, path);
+    xReq.send(formData);
+  });
+}
+
+function makeDeleteButton(buttonId) {
+  var button = document.getElementById(buttonId);
+  button.addEventListener('click', function(e) {
+    e.preventDefault();
+    var yes = confirm('Are you sure you want to delete this score?');
+    if (!yes) {
+      return false;
+    }
+    var id = document.getElementById('score-id').value;
+    var xReq = new XMLHttpRequest();
+    xReq.addEventListener('load', function() {
+      alert(this.responseText);
+    });
+    xReq.open('DELETE', '/scores/' + id);
+    xReq.send();
   });
 }
 
@@ -99,10 +131,9 @@ function importMusic(json) {
     music.addStaff('alto', 'treble');
     music.addStaff('tenor', 'tenor');
     music.addStaff('bass', 'bass');
-    return music;
   } else {
-    var obj = json;
-    var music = new Music(obj['tempo'], obj['key'], obj['time']);
+    var obj = JSON.parse(json);
+    var music = new Music(obj['tempo'], obj['key'], obj['timeSig']);
     for (var s = 0, len = obj['staves'].length; s < len; s++) {
       var sObj = obj['staves'][s];
       var staff = music.addStaff(sObj['voice'], sObj['clef']);
@@ -112,25 +143,25 @@ function importMusic(json) {
                       nObj['exp'], nObj['chromatic']);
       }
     }
-    return music;
   }
+  return music;
 }
 
-function makeMelodyButton(buttonId, editorId, music) {
+function makeMelodyButton(buttonId, editorId) {
   var button = document.getElementById(buttonId);
   var editor = document.getElementById(editorId);
   if (!button || !editor) {
     return false;
   }
-  var staff = music.staves[0];
-  var noteDiv = editor.firstChild.noteDiv;
   button.addEventListener('click', function() {
+    var music = editor.music;
     clearNotes(editor);
     music.clear();
     music.genMelody();
     fillNotes(editor, music);
   });
 }
+
 
 /*
  * MUSIC EDITOR
@@ -272,7 +303,7 @@ function changeAccidental(node, direction) {
  * User Interaction : Event Listeners
  */
 
-function makeMusicEditor(elemId, musicObj) {
+function makeMusicEditor(elemId) {
   var editor = document.getElementById(elemId);
   editor.setAttribute('tabindex', '1');
 

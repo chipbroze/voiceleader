@@ -13,17 +13,16 @@ enable :sessions
 # Index, Sign-in, Logout ====================================================
 
 get '/?' do
-  erb :new_score do
-    erb :editor
-  end
+  erb :index
 end
 
 post '/signup' do
   username = params[:username]
+  return "<p>Password fail</p>" if params[:password] != params[:confirm]
   password = Secure.encrypt(params[:password])
   if MyData.add_user(username, password)
     session[:username] = username
-    redirect '/scores', 303
+    redirect '/', 303
   else
     "<p>That username is taken</p>"
   end
@@ -36,29 +35,31 @@ end
 
 post '/login' do
   session[:username] = Secure.login?(params[:username], params[:password])
-  redirect('/scores', 303) if session[:username]
-  "<p>Could not find specified username/password</p>"
+  redirect('/', 303)
 end
 
 # Score routes ==============================================================
 
 get '/scores' do
   user = MyData::User.find_by name: session[:username]
-  erb :scores, :locals => {scores: user.scores}
+  hash = user.scores.map do |score|
+    {title: score.title, id: score.id}
+  end
+  hash.to_json
 end
 
 post '/scores' do
-  MyData.add_score(session[:username], params)
-  redirect '/scores', 303
+  if session[:username]
+    MyData.add_score(session[:username], params)
+    'Successfully saved'
+  else
+    'Error: You are not signed in!'
+  end
 end
 
 get '/scores/new' do
-  @json = ""
-  @title = "New Score"
-  @details = "No description yet"
-  erb :new_score do
-    erb :editor
-  end
+  content_type :json
+  { title: 'New Score' }.to_json
 end
 
 get '/scores/:id' do
@@ -72,9 +73,8 @@ get '/scores/:id' do
     "Score could not be found"
   else
     if score.user.name == session[:username]
-      erb :update_score do
-        erb :editor
-      end
+      content_type :json
+      score.to_json
     else
       "Forbidden"
     end
@@ -83,13 +83,20 @@ end
 
 put '/scores/:id' do
   MyData.update_score(session[:username], params)
-  redirect '/scores', 303
+  'Successfully updated'
 end
 
 delete '/scores/:id' do
+  if params[:id] == 'new'
+    return 'Score Not Found'
+  end
   score = MyData::Score.find(params[:id])
-  score.destroy
-  redirect '/scores', 303
+  if score
+    score.destroy
+    'Score Deleted'
+  else
+    'Score Not Found'
+  end
 end
 
 # Other =====================================================================

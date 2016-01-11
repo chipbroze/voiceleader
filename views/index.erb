@@ -1,30 +1,207 @@
-<!--
-<div class="left-body">
-<h2>Welcome to VoiceLeader</h2>
-<p>VoiceLeader lets you compose simple pieces of music to share with your 
-   teachers, classmates, and friends.  Use the built-in melody generator to 
-   get inspired, change keys in place to explore new modal soundscapes, and 
-   do music theory to your creations with the click of a button!</p>
+<!DOCTYPE HTML>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta description="VoiceLeader, the composer companion">
+  <title>VoiceLeader</title>
+  <link rel="stylesheet" href="/default.css">
+  <!--[if lt IE 9]>
+    <script src="//html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+</head>
+
+<body>
+
+<header>
+<div class="content">
+  <a href="/"><img src="/images/logo.png" id="banner" alt="VoiceLeader"></a>
+  <div id="session">
+  <% if session[:username] %>
+    <b><%= session[:username] %>: </b>
+    <a id="scores-btn" href="#">Scores</a> |
+    <a href="/logout">Logout</a>
+    <ul id="scores-menu" class="menu" hidden="true">
+      <li class="bold-li" rel="new">Create New Score</li>
+    </ul>
+  <% else %>
+    <form id="login" action="/login" method="POST">
+      <label for="username">User</label>
+      <input id="username" type="text" name="username" value="">
+      <label for="password">Password</label>
+      <input id="password" type="password" name="password" value="">
+      <button type="submit">Login</button>
+      <a id="signup-btn" href="#">Sign Up</a>
+    </form>
+  <% end %>
+  </div>
+</div>
+</header>
+
+<article>
+
+<div class="content">
+
+<div id="editor">
+
+<!-- Score Data -->
+<form id="score-data">
+  <div class="form-pair">
+    <label for="score-title">Title</label>
+    <input id="score-title" type="text" name="title" class="flat-title">
+  </div>
+  <div class="form-pair">
+    <label for="key">Key</label>
+    <select id="key" name="key"></select>
+  </div>
+  <div class="form-pair">
+    <label for="timeSig">Meter</label>
+    <select id="timeSig" name="time"></select>
+  </div>
+  <div class="form-pair">
+    <label for="tempo">Tempo</label>
+    <select id="tempo" name="tempo"></select>
+  </div>
+  <a href="#" id="help">Help</a>
+  <input id="score-id" type="hidden" name="id" value="new">
+</form>
+
+<!-- Music Input -->
+<div id="music-input"></div>
+
 </div>
 
-<div class="right-body">
-<h2>Start Composing</h2>
-<p>Create an account at VoiceLeader to start creating original music! 
-   VoiceLeader is, and will always be, completely free of charge.  Just 
-   enter a unique username and password below to get started.</p>
-
-<form id="account" action="/signup" method="POST">
-<fieldset>
-<legend>Sign Up</legend>
+<div class="pop-up">
+<form id="signup-form" action="/signup" method="POST">
+  <h3>Create Account</h3>
   <label for="username">User Name</label>
-  <input id="username" type="text" name ="username" value="" />
-  <label for="password">Password</label>
-  <input id="username" type="password" name ="password" value="" />
+  <input id="username" type="text" name ="username" required>
+  <label for="username">Email</label>
+  <input id="username" type="email" name ="email" required>
+  <label for="password">Set Password</label>
+  <input id="username" type="password" name ="password" required>
+  <label for="username">Confirm Password</label>
+  <input id="username" type="password" name ="confirm" required>
+  <button id="cancel-btn" type="reset">Cancel</button>
   <button type="submit">Sign Up</button>
-</fieldset>
 </form>
 </div>
 
-<hr>
--->
-<%= yield %>
+</div>
+
+</article>
+
+<!-- Editor Toolbox -->
+<footer>
+<div id="editor-tools">
+<button id="play-music" class="editor-btn" type="button">Play Music</button>
+<button id="clear-music" class="editor-btn" type="button">Clear</button>
+<button id="melody-gen" class="editor-btn" type="button">Generate</button>
+<button id="save-music" class="editor-btn" type="button">Save Score</button>
+<button id="del-music" class="editor-btn" type="button">Delete Score</button>
+</div>
+</footer>
+
+<!-- Javascripts -->
+<script src="/scripts/data.js"></script>
+<script src="/scripts/render.js"></script>
+<script src="/scripts/playback.js"></script>
+<script src="/scripts/events.js"></script>
+<script src="/scripts/melody.js"></script>
+<script src="/scripts/main.js"></script>
+<script>
+  buildPage();
+
+  var popup = document.getElementById('signup-form').parentNode;
+  var signup = document.getElementById('signup-btn');
+  var cancel = document.getElementById('cancel-btn');
+  var scoresMenu = document.getElementById('scores-menu');
+  var scoresBtn = document.getElementById('scores-btn');
+  if (signup) {
+    signup.addEventListener('click', function(e) {
+      e.preventDefault();
+      popup.style.display = 'block';
+      return false;
+    });
+  }
+  cancel.addEventListener('click', function(e) {
+    e.preventDefault();
+    popup.style.display = 'none';
+    return false;
+  });
+  if (scoresBtn) {
+    scoresBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      if (scoresMenu.hidden === true) {
+        populateScores();
+        scoresMenu.hidden = false;
+      } else {
+        scoresMenu.hidden = true;
+      }
+      e.stopPropagation();
+      return false;
+    });
+  }
+
+  // Close drop menus on click or TODO: esc
+  document.addEventListener('click', function(e) {
+    if (scoresMenu.hidden === false) {
+      scoresMenu.hidden = true;
+    }
+  });
+
+  function populateScores() {
+    var xReq = new XMLHttpRequest();
+    xReq.addEventListener('load', function() {
+      fillScoresMenu(this.responseText);
+    });
+    xReq.open('GET', '/scores');
+    xReq.send();
+  }
+
+  function fillScoresMenu(data) {
+    while (scoresMenu.lastChild.className !== 'bold-li') {
+      scoresMenu.removeChild(scoresMenu.lastChild);
+    }
+    var arr = JSON.parse(data);
+    arr.forEach(function(el) {
+      var li = document.createElement('li');
+      var text = document.createTextNode(el.title);
+      li.setAttribute('rel', el.id);
+      li.appendChild(text);
+      scoresMenu.appendChild(li);
+    });
+  }
+
+  if (scoresMenu) {
+  scoresMenu.addEventListener('click', function(e) {
+    var target = e.target;
+    if (target.tagName.toLowerCase() !== 'li') {
+      return false;
+    }
+    var id = target.getAttribute('rel');
+    var xReq = new XMLHttpRequest();
+    xReq.addEventListener('load', function() {
+      var scoreForm = document.getElementById('score-data');
+      var data = JSON.parse(this.responseText);
+      var title = document.getElementById('score-title');
+      var key = document.getElementById('key');
+      var timeSig = document.getElementById('timeSig');
+      scoreForm.title.value = data.title;
+      var music = importMusic(data.music);
+      scoreForm.key.value = music.key;
+      scoreForm.time.value = music.timeSig;
+      scoreForm.tempo.value = music.tempo;
+      var editor = document.getElementById('music-input');
+      drawMusic(editor, music);
+      var idInput = document.getElementById('score-id');
+      idInput.value = id;
+    });
+    xReq.open('GET', '/scores/' + id);
+    xReq.send();
+  });
+  }
+</script> 
+
+</body>
+</html>

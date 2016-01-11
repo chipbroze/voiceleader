@@ -1,8 +1,46 @@
 <article>
 
+<div id="left-bar">
+  <h3>Scores</h3>
+  <ul>
+    <li>Score number 1</li>
+    <li>Score number 2</li>
+    <li>Score number 3</li>
+  </ul>
+</div>
+
+<div id="main-bar">
+
 <form id="form" action="/scores" method="POST">
 
 <%= yield %>
 
 </form>
+
+<h2>Welcome to VoiceLeader</h2>
+<p class="item">VoiceLeader lets you compose simple pieces of music
+   to share with your teachers, classmates, and friends.  Use the
+   built-in melody generator to get inspired, change keys in place
+   to explore new modal soundscapes, and do music theory to your
+   creations with the click of a button!</p>
+
+<h2>Start Composing</h2>
+<p class="item">Create an account at VoiceLeader to start creating
+   original music! VoiceLeader is, and will always be, completely
+   free of charge.  Just enter a unique username and password below
+   to get started.</p>
+
+<form id="account" action="/signup" method="POST">
+<fieldset>
+<legend>Sign Up</legend>
+  <label for="username">User Name</label>
+  <input id="username" type="text" name ="username" value="" />
+  <label for="password">Password</label>
+  <input id="username" type="password" name ="password" value="" />
+  <button type="submit">Sign Up</button>
+</fieldset>
+</form>
+
+</div>
+
 </article>

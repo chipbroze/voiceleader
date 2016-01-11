@@ -3,7 +3,7 @@
 //////////////////////////////////
 
 var IMAGE_DIR = '/images/'; // path for image sources
-var activeNode = null; // attach this to musNode??
+var activeNode = null; // attach this to editor??
 var SPACE = 6;             // distance from line to space in staff
 var STAFF_MARGIN = 40      // css margin on left + right of staff
 var BEAT = 40;             // width of div.note class
@@ -24,38 +24,47 @@ var TOP = {                // various height offsets for css 'top' attribute
 
 /**
  * Render music.
- * @param {string} divId: The id attribute of the target <div>.
+ * @param {string} editorId: The id attribute of the target <div>.
  * @param {object} music: Instance of Music class, defined in data.js.
- * @return {node}: The node for the music <div>.
+ * @return {node}: The node for the music editor <div>.
  */
-function drawMusic(divId, music) {
-  var musNode = document.getElementById(divId);
-  musNode.music = music;
-  
+function createEditor(editorId) {
+  var editor = document.getElementById(editorId);
+  editor.keySig = document.createElement('div');
+  editor.keySig.setAttribute('class', 'key-sig');
+  editor.timeSig = document.createElement('div');
+  editor.timeSig.setAttribute('class', 'time-sig');
+
+  var music = new Music();
+  music.addStaff('soprano', 'treble');
+  music.addStaff('alto', 'treble');
+  music.addStaff('tenor', 'tenor');
+  music.addStaff('bass', 'bass');
+  drawMusic(editor, music);
+  return editor;
+}
+
+function drawMusic(editor, music) {
+  editor.music = music; 
   // Remove whitespace children.
-  while (musNode.firstChild) {
-    musNode.removeChild(musNode.firstChild);
+  while (editor.firstChild) {
+    editor.removeChild(editor.firstChild);
   }
-  musNode.keySig = document.createElement('div');
-  musNode.keySig.setAttribute('class', 'key-sig');
-  musNode.timeSig = document.createElement('div');
-  musNode.timeSig.setAttribute('class', 'time-sig');
-  
-  makeKeySig(music, musNode);
-  makeTimeSig(music, musNode);
+  makeKeySig(editor, music);
+  makeTimeSig(editor, music);
 
   for (var i = 0, len = music.staves.length; i < len; i++) {
-    createStaff(music.staves[i], musNode);
+    createStaff(music.staves[i], editor);
   }
-  return musNode;
+  return editor;
 }
 
 /**
  * Make key signature <div> for cloning.
  */
-function makeKeySig(music, musNode) {
-  while (musNode.keySig.firstChild) {
-    musNode.keySig.removeChild(musNode.keySig.firstChild);
+function makeKeySig(editor, music) {
+  while (editor.keySig.firstChild) {
+    editor.keySig.removeChild(editor.keySig.firstChild);
   }
   var keys = {
     'C' : ['flat', 0],
@@ -78,43 +87,43 @@ function makeKeySig(music, musNode) {
     var acciNode = document.createElement('img');
     acciNode.setAttribute('src', IMAGE_DIR + image);
     acciNode.style.top = yPos(staffPos[type][i]) + TOP.keySig + 'px';
-    musNode.keySig.appendChild(acciNode);
+    editor.keySig.appendChild(acciNode);
   } 
-  return musNode.keySig;
+  return editor.keySig;
 }
 
 /**
  * Make time signature <div> for cloning.
  */
-function makeTimeSig(music, musNode) {
+function makeTimeSig(editor, music) {
   var tSig = music.timeSig.split('/');
   var innards = '<p>' + tSig[0] + '</p><p>' + tSig[1] + '</p>';
-  musNode.timeSig.innerHTML = innards;
-  return musNode.timeSig;
+  editor.timeSig.innerHTML = innards;
+  return editor.timeSig;
 }
 
 /**
  * Scroll music to the left on playback.
  * Notes disappear when they collide with time signature.
  * @param {object} music: Instance of Music class.
- * @param {node} musNode: <div> element where music is rendered.
+ * @param {node} editor: <div> element where music is rendered.
  * @param {object} audio: Instance of AudioEnv class (playback).
  */
-function scrollMusic(music, musNode, audio) {
+function scrollMusic(music, editor, audio) {
   // Reset <div> scroll to beginning
-  musNode.scrollLeft = 0;
+  editor.scrollLeft = 0;
 
   var duration = music.getDuration() * 1000;
   var distance = duration / (60 * 1000) * music.tempo * BEAT;
-  var notes = getAllNotes(musNode);
+  var notes = getAllNotes(editor);
   var start = window.performance.now();
 
   // Callback function for requestAnimationFrame
   function scroll(time) {
-    var disappear = musNode.firstChild.timeSig.getBoundingClientRect().right;
+    var disappear = editor.firstChild.timeSig.getBoundingClientRect().right;
     var elapsed = time - start;
-    for (var i = 0, len = musNode.childNodes.length; i < len; i++) {
-      var noteDiv = musNode.childNodes[i].noteDiv;
+    for (var i = 0, len = editor.childNodes.length; i < len; i++) {
+      var noteDiv = editor.childNodes[i].noteDiv;
       noteDiv.style.right = elapsed / duration * distance + 'px';
     }    
     for (var n = notes.length - 1; n >= 0; n--) {
@@ -125,7 +134,7 @@ function scrollMusic(music, musNode, audio) {
       }
     }
     if (elapsed >= duration || audio.playing === false) {
-      return stopScroll(musNode, requestId);
+      return stopScroll(editor, requestId);
     }
     requestId = window.requestAnimationFrame(scroll);
   }
@@ -134,12 +143,12 @@ function scrollMusic(music, musNode, audio) {
 
 /**
  * Stop scrolling and reset noteDiv positions and note visibility.
- * @param {node} musNode: Music editor element.
+ * @param {node} editor: Music editor element.
  * @param {number} requestId: Scheduling ID for next animation frame.
  */
-function stopScroll(musNode, requestId) {
-  for (var i = 0, len = musNode.childNodes.length; i < len; i++) {
-    var noteDiv = musNode.childNodes[i].noteDiv;
+function stopScroll(editor, requestId) {
+  for (var i = 0, len = editor.childNodes.length; i < len; i++) {
+    var noteDiv = editor.childNodes[i].noteDiv;
     noteDiv.style.right = '0px';
     for (var n = 0, sLen = noteDiv.childNodes.length; n < sLen; n++) {
       noteDiv.childNodes[n].style.visibility = '';
@@ -150,23 +159,23 @@ function stopScroll(musNode, requestId) {
 
 /**
  * Remove all notes from music editor.
- * @param {node} musNode: Music editor element.
+ * @param {node} editor: Music editor element.
  */
-function clearNotes(musNode) {
-  var notes = getAllNotes(musNode);
+function clearNotes(editor) {
+  var notes = getAllNotes(editor);
   for (var i = 0, len = notes.length; i < len; i++) {
     notes[i].parentNode.removeChild(notes[i]);
   }
-  resetMusicWidth(musNode);
+  resetMusicWidth(editor);
 }
 
 /**
  * Update all staves with current note data.
- * @param {node} musNode: Music editor element.
+ * @param {node} editor: Music editor element.
  */
-function fillNotes(musNode, music) {
-  for (var s = 0, len = musNode.childNodes.length; s < len; s++) {
-    var noteDiv = musNode.childNodes[s].noteDiv;
+function fillNotes(editor, music) {
+  for (var s = 0, len = editor.childNodes.length; s < len; s++) {
+    var noteDiv = editor.childNodes[s].noteDiv;
     var staff = music.staves[s];
     for (var i = 0, lem = staff.notes.length; i < lem; i++) {
       createNote(staff.notes[i], noteDiv);
@@ -176,16 +185,16 @@ function fillNotes(musNode, music) {
 
 /**
  * Reset width for all Staff elements, based on widest noteDiv.
- * @param {node} musNode: Music editor element.
+ * @param {node} editor: Music editor element.
  */
-function resetMusicWidth(musNode) {
-  var width = musNode.clientWidth - STAFF_MARGIN;
-  for (var s = 0, len = musNode.childNodes.length; s < len; s++) {
-    var noteDiv = musNode.childNodes[s].noteDiv;
+function resetMusicWidth(editor) {
+  var width = editor.clientWidth - STAFF_MARGIN;
+  for (var s = 0, len = editor.childNodes.length; s < len; s++) {
+    var noteDiv = editor.childNodes[s].noteDiv;
     width = Math.max(width, noteDiv.offsetLeft + noteDiv.offsetWidth);
   }
-  for (var s = 0, len = musNode.childNodes.length; s < len; s++) {
-    var staffNode = musNode.childNodes[s];
+  for (var s = 0, len = editor.childNodes.length; s < len; s++) {
+    var staffNode = editor.childNodes[s];
     staffNode.style.width = width + 'px';
   }
 }
@@ -209,13 +218,13 @@ function adjustScroll(node) {
 
 /**
  * Get array of all note nodes.
- * @param {node} musNode: Music editor element.
+ * @param {node} editor: Music editor element.
  * @return {array}: Note nodes for all staves.
  */
-function getAllNotes(musNode) {
+function getAllNotes(editor) {
   var notes = [];
-  for (var s = 0, len = musNode.childNodes.length; s < len; s++) {
-    var noteDiv = musNode.childNodes[s].noteDiv;
+  for (var s = 0, len = editor.childNodes.length; s < len; s++) {
+    var noteDiv = editor.childNodes[s].noteDiv;
     for (var n = 0, sLen = noteDiv.childNodes.length; n < sLen; n++) {
       notes.push(noteDiv.childNodes[n]);
     }
@@ -231,10 +240,10 @@ function getAllNotes(musNode) {
 /**
  * Create, fill and append staff node.
  * @param {object} staff: Instance of Staff class.
- * @param {node} musNode: Music editor <div> element.
+ * @param {node} editor: Music editor <div> element.
  * @return {node}: New staff node <a>.
  */
-function createStaff(staff, musNode) {
+function createStaff(staff, editor) {
   var staffNode = document.createElement('a'); 
   staffNode.staff = staff;
   staffNode.setAttribute('class', 'staff');
@@ -251,7 +260,7 @@ function createStaff(staff, musNode) {
   staffNode.appendChild(staffNode.keySig);
   staffNode.appendChild(staffNode.timeSig);
 
-  musNode.appendChild(staffNode);
+  editor.appendChild(staffNode);
   return drawStaff(staff, staffNode);
 }
 

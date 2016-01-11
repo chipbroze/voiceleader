@@ -1,4 +1,4 @@
-function buildPage(obj) {
+function buildPage() {
   
   var keys = [['C', 'C Major / a minor'], ['G', 'G Major / e minor'],
              ['D', 'D Major / b minor'], ['A', 'A Major / f# minor'],
@@ -17,17 +17,16 @@ function buildPage(obj) {
   var timeSigs = [['4/4', '4 / 4'], ['3/4', '3 / 4'], ['2/4', '2 / 4'],
                   ['2/2', '2 / 2'], ['6/8', '6 / 8'], ['7/8', '7 / 8']];
 
-  var music = importMusic(obj);
-
-  makeClearButton('clear-music', 'music-input', music);
-  makeSelector('key', 'music-input', music, keys, keyChange);
-  makeSelector('tempo', 'music-input', music, tempi, tempoChange);
-  makeSelector('timeSig', 'music-input', music, timeSigs, timeChange);
-  makeFormSubmit('form', music);
-  drawMusic('music-input', music);
-  makeMusicEditor('music-input', music);
-  makeMelodyButton('melody-gen', 'music-input', music);
+  makeClearButton('clear-music', 'music-input');
+  makeSelector('key', 'music-input', keys, keyChange);
+  makeSelector('tempo', 'music-input', tempi, tempoChange, 120);
+  makeSelector('timeSig', 'music-input', timeSigs, timeChange);
+  makeFormSubmit('save-music', 'score-data', 'music-input');
+  makeDeleteButton('del-music');
+  createEditor('music-input');
+  makeMusicEditor('music-input');
+  makeMelodyButton('melody-gen', 'music-input');
 
   var audio = new AudioEnv();
-  makePlayButton('play-music', 'music-input', music, audio);
+  makePlayButton('play-music', 'music-input', audio);
 }

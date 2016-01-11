@@ -1,41 +1,32 @@
 /**
  * Resets and Overrides
  */
-
 * { margin: 0; padding: 0 }
-img { vertical-align: top }
 
 /**
- * Links and Type
+ * General Style and Layout
  */
 
 body {
-  background-color: #660066;
+  background-color: rgb(80, 0, 100);
   background-image: url('/images/bg-score.jpg');
   color: black;
   margin: 0px;
-  font-size: 16px;
+  font-size: 14px;
   font-family: 'Verdana', sans-serif;
 }
-.center-body {
-  width: 900px;
-  height: auto;
+
+.content {
   margin: 0 auto;
+  width: 90%;
+  max-width: 900px;
+  min-width: 770px;
 }
 
 h1, h2 {
-  font-size: 1.5em;
   color: #660066;
   margin-bottom: 10px;
-  border-bottom: 2px dotted #660066;
 }
-
-h3 {
-  font-size: 1em;
-  color: #660066;
-  margin-bottom: 5px;
-}
-
 p {
   line-height: 1.5em;
   margin-bottom: 1.5em;
@@ -48,18 +39,22 @@ a:hover {
   color: white;
 }
 
-/**
- * Forms
- */
+/* Forms */
 
 label {
   color: white;
-  font-size: 0.8em;
+}
+input, select {
+  background-color: #EEDDEE;
+  border: none;
+  color: #332233;
+  font-size: 1em;
+  padding: 2px 5px;
 }
 button {
   background-color: #665566;
   color: white;
-  font-size: 0.8em;
+  font-size: 1em;
   padding: 0.3em 10px;
 }
 button:hover {
@@ -68,73 +63,22 @@ button:hover {
 button:focus {
   outline: none;
 }
-/*
-fieldset {
-  border: 0px dashed #660066;
-  border-radius: 5px;
-  background-color: #FFCC99;
-  margin: 0px 20px 20px 20px;
-  padding: 0 15px;
-}
 
-legend {
-  color: #660066;
-  padding: 0.5em;
-  position: relative;
-  top: -1em;
-  left: -7px;
-}
-
-label {
-  display: block;
-  font-size: 0.8em;
-  font-weight: bold;
-}
-
-input, textarea, select {
-  font-size: 0.8em;
-  display: block;
-  box-sizing: border-box;
-  width: 100%;
-  margin: 0 auto 0.5em auto;
-  padding: 0.2em;
-}
-select {
-  font-size: 1em;
-  background-color: #FFEEDD;
-}
-
-textarea {
-  resize: none;
-  overflow: auto;
-}
-*/
-/*
-.del-score {
-  display: inline-block;
-  position: absolute;
-  top: 0px;
-  right: 0px;
-  padding: 3px 6px;
-  margin: 5px;
-  color: red;
-}
-
-/**
+/****************************************************************************
  * Header
  */
 
 header {
   background-color: rgba(80, 0, 100, 0.9);
   border-bottom: 1px solid #220033;
-  height: 75px;
+  height: 74px;
   position: absolute;
   top: 0px;
   width: 100%;
 }
 
 #banner {
-  margin: 5px 20px;
+  margin: 5px 0;
   width: 300px;
 }
 
@@ -142,170 +86,79 @@ header {
   display: inline-block;
   float: right;
   color: white;
-  margin: 25px 20px 0 0;
-}
-#session input {
-  color: black;
-  margin: 0;
-  padding: 0;
+  margin-top: 25px;
 }
 
-/**
+#login input {
+  width: 100px;
+}
+
+#signup-btn {
+  padding-left: 10px;
+}
+
+/* Menus */
+.menu {
+  list-style-type: none;
+  position: fixed;
+  top: 75px;
+  right: 170px;
+  z-index: 2;
+}
+.menu li {
+  background-color: rgba(100, 100, 100, 0.9); 
+  cursor: pointer;
+  padding: 10px 5px;
+  width: 200px;
+}
+.menu li:hover {
+  background-color: rgba(128, 128, 128, 1); 
+}
+.bold-li {
+  font-style: italic;
+  text-decoration: underline;
+}
+#scores-menu {
+  overflow-x: hidden;
+  overflow-y: auto;
+  max-height: 400px;
+}
+
+/****************************************************************************
  * Article
  */
-
 article {
-  padding-bottom: 100px;
-  position: absolute;
-  top: 120px;
+  padding: 20px 0;
+  position: fixed;
+  top: 75px;
+  bottom: 75px;
+  overflow: auto;
   width: 100%;
-}
-
-.left-body {
-  width: 40%;
-  margin-right: 5%;
-  float: left;
-}
-.right-body {
-  width: 55%;
-  float: left;
-}
-.score-thumb {
-  width: 28%;
-  height: 4em;
-  overflow: hidden;
-  position: relative;
-  display: inline-block;
-  border-radius: 5px;
-  background-color: #FFCC99;
-  margin: 10px;
-  padding: 10px;
 }
 
 /****************************************************************************
- * Footer
- */
-
-footer {
-  font-size: 0.8em;
-  color: white;
-  text-align: center;
-  padding-bottom: 10px;
-  margin: 0;
-}
-p.foot {
-  margin: 0;
-}
-
-/****************************************************************************
- * Unsorted
- */
-
-.float-left {
-  float: left;
-}
-
-.hide {
-  display: none;
-}
-
-.float {
-  float: left;
-  margin-right: 12px;
-}
-div.column {
-  float: left;
-  width: 45%;
-  margin-right: 5%;
-}
-div#voice_input label {
-  display: inline-block; 
-  width: 120px;
-  margin-right: 6px;
-  text-align: right;
-}
-
-/**
- * Analysis Results Page
- */
-
-.results-table {
-  width: 100%;
-  background: #BB66BB;
-}
-.results-table th {
-  background: black;
-  color: white;
-}
-.results-table td {
-  vertical-align: top;
-  background: #DDDDDD;
-}
-.results-table ul {
-  list-style-type: none;
-  margin: 0;
-  padding: 0;
-}
-
-/* Unsorted */
-
-form legend {
-  font-weight: bold;
-}
-table {
-  width: 100%;
-}
-table tr td {
-  vertical-align: top;
-}
-dt {
-  font-weight: bold;
-}
-dd {
-  color: #222222;
-  font-style:italic;
-  margin: 0 0 12px 0;
-}
-
-/**
  * Score Editor
  */
-#score-editor {
+#editor {
   margin: 0 auto;
-  width: 900px;
-}
-#editor-tools {
-  background-color: rgba(80, 0, 100, 0.9);
-  bottom: 0px;
-  height: 70px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: fixed;
   width: 100%;
 }
-.editor-btn {
-  height: 35px;
-  width: 200px;
-  margin: 0 10px;
-}
+
+/* Score data */
 #score-data {
   background-color: rgba(80, 0, 100, 0.9);
   border-radius: 10px 10px 0 0;
-  height: 30px;
-  padding: 10px;
+  line-height: 2;
+  padding: 15px 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-around;
 }
-#score-data label {
-  margin-left: 30px;
+.form-pair {
 }
-.flat-details {
-  display: none;
-}
-.flat-title {
-  font-size: 0.9em;
-  padding: 5px;
-  width: 200px;
-}
+
+/* Music input */
 #music-input {
   background-color: rgba(255, 255, 255, 0.95);
   border-radius: 0 0 10px 10px;
@@ -381,3 +234,76 @@ dd {
   position: relative;
   width: 20px;
 }
+
+/****************************************************************************
+ * Pop-up windows
+ */
+.pop-up {
+  background-color: rgba(160, 100, 170, 0.9);
+  border: 5px double #553366;
+  border-radius: 5px;
+  box-sizing: border-box;
+  display: none;
+  position: fixed;
+  top: calc(50% - 250px);
+  left: calc(50% - 250px);
+  width: 500px;
+  padding: 30px;
+  z-index: 2;
+}
+h3 {
+  color: white;
+  font-size: 1.5em;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+/* Sign-Up */
+#signup-form {
+  margin: 0 auto;
+  width: 70%;
+}
+#signup-form label {
+  display: block;
+}
+#signup-form input {
+  box-sizing: border-box;
+  margin-bottom: 20px;
+  padding: 5px;
+  width: 100%;
+}
+#signup-form button {
+  box-sizing: border-box;
+  margin-top: 10px;
+  width: 49%;
+}
+
+/****************************************************************************
+ * Footer
+ */
+footer {
+  background-color: rgba(80, 0, 100, 0.9);
+  border-top: 1px solid #220033;
+  box-sizing: border-box;
+  color: white;
+  height: 75px;
+  text-align: center;
+  position: fixed;
+  bottom: 0px;
+  width: 100%;
+}
+#editor-tools {
+  height: 100%;
+  width: 90%;
+  max-width: 900px;
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-around;
+}
+.editor-btn {
+  width: 18%;
+  min-width: 110px;
+}
+
