@@ -1,3 +1,4 @@
+# Mistake class
 class Mistake
   attr_reader :type, :value
 
