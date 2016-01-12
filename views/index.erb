@@ -71,7 +71,8 @@
 
 </div>
 
-<div class="pop-up">
+<!-- Popups -->
+<div class="pop-up" hidden="true">
 <form id="signup-form" action="/signup" method="POST">
   <h3>Create Account</h3>
   <label for="username">User Name</label>
@@ -109,99 +110,6 @@
 <script src="/scripts/events.js"></script>
 <script src="/scripts/melody.js"></script>
 <script src="/scripts/main.js"></script>
-<script>
-  buildPage();
-
-  var popup = document.getElementById('signup-form').parentNode;
-  var signup = document.getElementById('signup-btn');
-  var cancel = document.getElementById('cancel-btn');
-  var scoresMenu = document.getElementById('scores-menu');
-  var scoresBtn = document.getElementById('scores-btn');
-  if (signup) {
-    signup.addEventListener('click', function(e) {
-      e.preventDefault();
-      popup.style.display = 'block';
-      return false;
-    });
-  }
-  cancel.addEventListener('click', function(e) {
-    e.preventDefault();
-    popup.style.display = 'none';
-    return false;
-  });
-  if (scoresBtn) {
-    scoresBtn.addEventListener('click', function(e) {
-      e.preventDefault();
-      if (scoresMenu.hidden === true) {
-        populateScores();
-        scoresMenu.hidden = false;
-      } else {
-        scoresMenu.hidden = true;
-      }
-      e.stopPropagation();
-      return false;
-    });
-  }
-
-  // Close drop menus on click or TODO: esc
-  document.addEventListener('click', function(e) {
-    if (scoresMenu.hidden === false) {
-      scoresMenu.hidden = true;
-    }
-  });
-
-  function populateScores() {
-    var xReq = new XMLHttpRequest();
-    xReq.addEventListener('load', function() {
-      fillScoresMenu(this.responseText);
-    });
-    xReq.open('GET', '/scores');
-    xReq.send();
-  }
-
-  function fillScoresMenu(data) {
-    while (scoresMenu.lastChild.className !== 'bold-li') {
-      scoresMenu.removeChild(scoresMenu.lastChild);
-    }
-    var arr = JSON.parse(data);
-    arr.forEach(function(el) {
-      var li = document.createElement('li');
-      var text = document.createTextNode(el.title);
-      li.setAttribute('rel', el.id);
-      li.appendChild(text);
-      scoresMenu.appendChild(li);
-    });
-  }
-
-  if (scoresMenu) {
-  scoresMenu.addEventListener('click', function(e) {
-    var target = e.target;
-    if (target.tagName.toLowerCase() !== 'li') {
-      return false;
-    }
-    var id = target.getAttribute('rel');
-    var xReq = new XMLHttpRequest();
-    xReq.addEventListener('load', function() {
-      var scoreForm = document.getElementById('score-data');
-      var data = JSON.parse(this.responseText);
-      var title = document.getElementById('score-title');
-      var key = document.getElementById('key');
-      var timeSig = document.getElementById('timeSig');
-      scoreForm.title.value = data.title;
-      var music = importMusic(data.music);
-      scoreForm.key.value = music.key;
-      scoreForm.time.value = music.timeSig;
-      scoreForm.tempo.value = music.tempo;
-      var editor = document.getElementById('music-input');
-      drawMusic(editor, music);
-      var idInput = document.getElementById('score-id');
-      idInput.value = id;
-    });
-    xReq.open('GET', '/scores/' + id);
-    xReq.send();
-  });
-  }
-</script> 
 
 </body>
 </html>

@@ -243,7 +243,6 @@ article {
   border: 5px double #553366;
   border-radius: 5px;
   box-sizing: border-box;
-  display: none;
   position: fixed;
   top: calc(50% - 250px);
   left: calc(50% - 250px);

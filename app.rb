@@ -35,7 +35,7 @@ end
 
 post '/login' do
   session[:username] = Secure.login?(params[:username], params[:password])
-  redirect('/', 303)
+  redirect '/', 303
 end
 
 # Score routes ==============================================================
@@ -65,10 +65,6 @@ end
 get '/scores/:id' do
   begin
     score = MyData::Score.find(params[:id])
-    @id = params[:id]
-    @json = score.music
-    @title = score.title
-    @details = score.details
   rescue
     "Score could not be found"
   else
@@ -99,12 +95,14 @@ delete '/scores/:id' do
   end
 end
 
-# Other =====================================================================
+# Theory =====================================================================
 
 get '/scores/:id/theory' do
   score = MyData::Score.find(params[:id])
-  @music = make_music(score.music)
-  @options = params[:options]
-  @mistakes = find_mistakes(@music, @options)
-  erb :results, :locals => {music: @music, mistakes: @mistakes}
+  music = make_music(score.music)
+  options = params[:options]
+  mistakes = find_mistakes(music, options)
+
+  content_type :json
+  {music: music, mistakes: mistakes}.to_json
 end

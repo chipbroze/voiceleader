@@ -1,93 +1,60 @@
 /**
- * BUTTONS AND INPUT
- */ 
+ * AJAX, JSON, XML Calls
+ */
 
-function makePlayButton(buttonId, editorId, audio) {
-  var button = document.getElementById(buttonId);
-  var musNode = document.getElementById(editorId);
-  button.addEventListener('click', function() {
-    var music = musNode.music;
-    if (button.innerHTML === "Stop Music") {
-      button.innerHTML = "Play Music";
-      clearTimeout(audio.playing);
-      audio.stop();
-    } else if (music.getDuration() > 0) {
-      button.innerHTML = "Stop Music";
-      var endTime = audio.play(music.getData(), music.tempo);
-      audio.playing = setTimeout(function() {
-        audio.stop();
-        button.innerHTML = "Play Music";
-      }, (endTime * 1000));
-      scrollMusic(music, musNode, audio);
-    }
+// Read all scores
+function populateScores(scoresMenu) {
+  var xReq = new XMLHttpRequest();
+  xReq.addEventListener('load', function() {
+    fillScoresMenu(scoresMenu, this.responseText);
+  });
+  xReq.open('GET', '/scores');
+  xReq.send();
+}
+
+function fillScoresMenu(scoresMenu, data) {
+  while (scoresMenu.lastChild.className !== 'bold-li') {
+    scoresMenu.removeChild(scoresMenu.lastChild);
+  }
+  var arr = JSON.parse(data);
+  arr.forEach(function(el) {
+    var li = document.createElement('li');
+    var text = document.createTextNode(el.title);
+    li.setAttribute('rel', el.id);
+    li.appendChild(text);
+    scoresMenu.appendChild(li);
   });
 }
 
-function makeClearButton(buttonId, editorId) {
-  var button = document.getElementById(buttonId);
-  var musNode = document.getElementById(editorId);
-  button.addEventListener('click', function() {
-    clearNotes(musNode);
-    musNode.music.clear();
+  
+// Retrieve and load score data
+function loadScore(scoreId) {
+  
+  var xReq = new XMLHttpRequest();
+  xReq.addEventListener('load', function() {
+    var data = JSON.parse(this.responseText);
+    
+    var editor = document.getElementById('music-input');
+    var music = importMusic(data.music);
+    drawMusic(editor, music);
+    
+    var scoreForm = document.getElementById('score-data');
+    scoreForm.title.value = data.title;
+    scoreForm.key.value = music.key;
+    scoreForm.time.value = music.timeSig;
+    scoreForm.tempo.value = music.tempo;
+    
+    var id = document.getElementById('score-id');
+    id.value = scoreId;
   });
+  xReq.open('GET', '/scores/' + scoreId);
+  xReq.send();
 }
 
-function makeSelector(id, editorId, options, changeFunc, defalt) {
-  var selector = document.getElementById(id);
-  for (var i = 0, len = options.length; i < len; i++) {
-    var option = document.createElement('option');
-    var textNd = document.createTextNode(options[i][1]);
-    option.value = options[i][0];
-    option.appendChild(textNd);
-    selector.appendChild(option);
-    if (defalt) {
-      selector.value = defalt;
-    }
-  }
-  var musNode = document.getElementById(editorId);
-  selector.addEventListener('change', function() {
-    return changeFunc(selector, musNode);
-  });
-}
-
-function keyChange(selector, musNode) {
-  var music = musNode.music;
-  music.key = selector.value;
-  makeKeySig(musNode, music);
-  for (var i = 0, len = musNode.childNodes.length; i < len; i++) {
-    var staffNode = musNode.childNodes[i];
-    var noteNodes = staffNode.noteDiv.childNodes;
-    drawKeySig(staffNode.staff, staffNode);
-    for (var n = 0, lem = noteNodes.length; n < lem; n++) {
-      var node = noteNodes[n];
-      node.note.updateKey();
-      drawNote(node.note, node, ['accidental']);
-    }
-  }
-}
-
-function timeChange(selector, musNode) {
-  var music = musNode.music;
-  music.timeSig = selector.value;
-  makeTimeSig(musNode, music);
-  for (var i = 0, len = musNode.childNodes.length; i < len; i++) {
-    var staffNode = musNode.childNodes[i];
-    drawTimeSig(staffNode.staff, staffNode);
-  }
-}
-
-function tempoChange(selector, musNode) {
-  var music = musNode.music;
-  music.tempo = parseInt(selector.value);
-}
-
-
-// New plan: Store title, details, and music-json
-// TODO: Update score ID upon first save
-function makeFormSubmit(buttonId, formId, editorId) {
+// Make Save Button (Create and Update)
+function makeSaveButton(buttonId, formId, editor) {
   var button = document.getElementById(buttonId);
   var form = document.getElementById(formId);
-  var editor = document.getElementById(editorId);
   button.addEventListener('click', function(e) {
     e.preventDefault();
     var music = editor.music.JSONify();
@@ -112,6 +79,7 @@ function makeFormSubmit(buttonId, formId, editorId) {
   });
 }
 
+// Make Delete Button (Delete)
 function makeDeleteButton(buttonId) {
   var button = document.getElementById(buttonId);
   button.addEventListener('click', function(e) {
@@ -120,15 +88,100 @@ function makeDeleteButton(buttonId) {
     if (!yes) {
       return false;
     }
-    var id = document.getElementById('score-id').value;
+    var id = document.getElementById('score-id');
     var xReq = new XMLHttpRequest();
     xReq.addEventListener('load', function() {
       alert(this.responseText);
+      id.value = 'new';
     });
-    xReq.open('DELETE', '/scores/' + id);
+    xReq.open('DELETE', '/scores/' + id.value);
     xReq.send();
   });
 }
+
+
+
+/**
+ * BUTTONS AND INPUT
+ */ 
+
+function makePlayButton(buttonId, editor) {
+  var audio = new AudioEnv();
+  var button = document.getElementById(buttonId);
+  button.addEventListener('click', function() {
+    var music = editor.music;
+    if (button.innerHTML === "Stop Music") {
+      button.innerHTML = "Play Music";
+      clearTimeout(audio.playing);
+      audio.stop();
+    } else if (music.getDuration() > 0) {
+      button.innerHTML = "Stop Music";
+      var endTime = audio.play(music.getData(), music.tempo);
+      audio.playing = setTimeout(function() {
+        audio.stop();
+        button.innerHTML = "Play Music";
+      }, (endTime * 1000));
+      scrollMusic(music, editor, audio);
+    }
+  });
+}
+
+function makeClearButton(buttonId, editor) {
+  var button = document.getElementById(buttonId);
+  button.addEventListener('click', function() {
+    clearNotes(editor);
+    editor.music.clear();
+  });
+}
+
+function makeSelector(id, editor, options, changeFunc, defalt) {
+  var selector = document.getElementById(id);
+  for (var i = 0, len = options.length; i < len; i++) {
+    var option = document.createElement('option');
+    var textNd = document.createTextNode(options[i][1]);
+    option.value = options[i][0];
+    option.appendChild(textNd);
+    selector.appendChild(option);
+    if (defalt) {
+      selector.value = defalt;
+    }
+  }
+  selector.addEventListener('change', function() {
+    return changeFunc(selector, editor);
+  });
+}
+
+function keyChange(selector, editor) {
+  var music = editor.music;
+  music.key = selector.value;
+  makeKeySig(editor, music);
+  for (var i = 0, len = editor.childNodes.length; i < len; i++) {
+    var staffNode = editor.childNodes[i];
+    var noteNodes = staffNode.noteDiv.childNodes;
+    drawKeySig(staffNode.staff, staffNode);
+    for (var n = 0, lem = noteNodes.length; n < lem; n++) {
+      var node = noteNodes[n];
+      node.note.updateKey();
+      drawNote(node.note, node, ['accidental']);
+    }
+  }
+}
+
+function timeChange(selector, editor) {
+  var music = editor.music;
+  music.timeSig = selector.value;
+  makeTimeSig(editor, music);
+  for (var i = 0, len = editor.childNodes.length; i < len; i++) {
+    var staffNode = editor.childNodes[i];
+    drawTimeSig(staffNode.staff, staffNode);
+  }
+}
+
+function tempoChange(selector, editor) {
+  var music = editor.music;
+  music.tempo = parseInt(selector.value);
+}
+
 
 function importMusic(json) {
   if (json === undefined) {
@@ -153,9 +206,8 @@ function importMusic(json) {
   return music;
 }
 
-function makeMelodyButton(buttonId, editorId) {
+function makeMelodyButton(buttonId, editor) {
   var button = document.getElementById(buttonId);
-  var editor = document.getElementById(editorId);
   if (!button || !editor) {
     return false;
   }
@@ -309,9 +361,9 @@ function changeAccidental(node, direction) {
  * User Interaction : Event Listeners
  */
 
-function makeMusicEditor(elemId) {
-  var editor = document.getElementById(elemId);
+function makeMusicEditor(editor) {
   editor.setAttribute('tabindex', '1');
+  createEditor(editor);
 
   editor.addEventListener('keydown', function(e) {
     e = e || window.event;

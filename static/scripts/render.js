@@ -28,8 +28,7 @@ var TOP = {                // various height offsets for css 'top' attribute
  * @param {object} music: Instance of Music class, defined in data.js.
  * @return {node}: The node for the music editor <div>.
  */
-function createEditor(editorId) {
-  var editor = document.getElementById(editorId);
+function createEditor(editor) {
   editor.keySig = document.createElement('div');
   editor.keySig.setAttribute('class', 'key-sig');
   editor.timeSig = document.createElement('div');
