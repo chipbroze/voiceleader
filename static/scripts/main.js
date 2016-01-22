@@ -3,35 +3,39 @@ document.addEventListener('DOMContentLoaded', buildPage);
 
 // Build page elements and set event listeners, etc
 function buildPage() {
+  
+  // Set element variables for later use
+  var editor = document.getElementById('music-input');
+  var scoreForm = document.getElementById('score-data');
+  var signupBtn = document.getElementById('signup-btn');
+  var signupPop = document.getElementById('signup-form').parentNode;
+  var cancelBtn = document.getElementById('cancel-btn');
+  var scoresBtn = document.getElementById('scores-btn');
+  var scoresMenu = document.getElementById('scores-menu');
 
   // Sign-up (Popup window)
-  var signup = document.getElementById('signup-btn');
   
-  if (signup) {
-    var popup = document.getElementById('signup-form').parentNode;
-    var cancel = document.getElementById('cancel-btn');
+  if (signupBtn) {
     
-    signup.addEventListener('click', function(e) {
+    signupBtn.addEventListener('click', function(e) {
       e.preventDefault();
-      popup.hidden = false;
+      signupPop.hidden = false;
     });
-    cancel.addEventListener('click', function(e) {
+    cancelBtn.addEventListener('click', function(e) {
       e.preventDefault();
-      popup.hidden = true;
+      signupPop.hidden = true;
     });
   }
 
   // Scores (Pulldown menu)
-  var scoresBtn = document.getElementById('scores-btn');
   
   if (scoresBtn) {
-    var scoresMenu = document.getElementById('scores-menu');
     
     // Toggle scores menu with button clicks
     scoresBtn.addEventListener('click', function(e) {
       e.preventDefault();
       if (scoresMenu.hidden === true) {
-        populateScores(scoresMenu);
+        getScores(scoresMenu);
         scoresMenu.hidden = false;
       } else {
         scoresMenu.hidden = true;
@@ -53,12 +57,11 @@ function buildPage() {
         return false;
       }
       var id = target.getAttribute('rel');
-      loadScore(id);
+      getScore(id, editor, scoreForm);
     });
   }
 
   // Setup Editor ==========================================================
-  var editor = document.getElementById('music-input');
 
   // Key select element
   var keys = [

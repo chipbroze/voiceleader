@@ -3,7 +3,7 @@
  */
 
 // Read all scores
-function populateScores(scoresMenu) {
+function getScores(scoresMenu) {
   var xReq = new XMLHttpRequest();
   xReq.addEventListener('load', function() {
     fillScoresMenu(scoresMenu, this.responseText);
@@ -11,7 +11,6 @@ function populateScores(scoresMenu) {
   xReq.open('GET', '/scores');
   xReq.send();
 }
-
 function fillScoresMenu(scoresMenu, data) {
   while (scoresMenu.lastChild.className !== 'bold-li') {
     scoresMenu.removeChild(scoresMenu.lastChild);
@@ -25,30 +24,25 @@ function fillScoresMenu(scoresMenu, data) {
     scoresMenu.appendChild(li);
   });
 }
-
-  
+ 
 // Retrieve and load score data
-function loadScore(scoreId) {
-  
+function getScore(scoreId, editor, scoreForm) {  
   var xReq = new XMLHttpRequest();
   xReq.addEventListener('load', function() {
-    var data = JSON.parse(this.responseText);
-    
-    var editor = document.getElementById('music-input');
-    var music = importMusic(data.music);
-    drawMusic(editor, music);
-    
-    var scoreForm = document.getElementById('score-data');
-    scoreForm.title.value = data.title;
-    scoreForm.key.value = music.key;
-    scoreForm.time.value = music.timeSig;
-    scoreForm.tempo.value = music.tempo;
-    
-    var id = document.getElementById('score-id');
-    id.value = scoreId;
+    fillEditor(this.responseText, editor, scoreForm, scoreId);
   });
   xReq.open('GET', '/scores/' + scoreId);
   xReq.send();
+}
+function fillEditor(json, editor, scoreForm, scoreId) {
+  var data = JSON.parse(json);
+  var music = importMusic(data.music);
+  drawMusic(editor, music);
+  scoreForm.title.value = data.title;
+  scoreForm.key.value = music.key;
+  scoreForm.time.value = music.timeSig;
+  scoreForm.tempo.value = music.tempo;
+  scoreForm.id.value = scoreId;
 }
 
 // Make Save Button (Create and Update)

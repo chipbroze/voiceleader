@@ -18,12 +18,16 @@
   <a href="/"><img src="/images/logo.png" id="banner" alt="VoiceLeader"></a>
   <div id="session">
   <% if session[:username] %>
-    <b><%= session[:username] %>: </b>
-    <a id="scores-btn" href="#">Scores</a> |
-    <a href="/logout">Logout</a>
-    <ul id="scores-menu" class="menu" hidden="true">
-      <li class="bold-li" rel="new">Create New Score</li>
-    </ul>
+    <div id="user-info">
+      <b><%= session[:username] %>: </b>
+      <a href="/logout">Logout</a>
+    </div>
+    <div id="menu-bar">
+      <div id="scores-btn" class="menu-btn" href="#">Scores</div> 
+      <ul id="scores-menu" class="menu" hidden="true">
+        <li class="bold-li" rel="new">Create New Score</li>
+      </ul>
+    </div>
   <% else %>
     <form id="login" action="/login" method="POST">
       <label for="username">User</label>

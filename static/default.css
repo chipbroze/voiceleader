@@ -32,7 +32,7 @@ p {
   margin-bottom: 1.5em;
 }
 a {
-  color: yellow;
+  color: #FFFF33;
   text-decoration: none;
 }
 a:hover {
@@ -98,21 +98,45 @@ header {
 }
 
 /* Menus */
+#menu-bar {
+  position: absolute;
+  bottom: -1px;
+}
+.menu-btn {
+  background-color: #FFFF33;
+  border-bottom: 1px solid #AAAAAA;
+  border-radius: 7px 7px 0 0;
+  color: #660066;
+  padding: 3px 20px;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+.menu-btn:hover {
+  background-color: white;
+  cursor: pointer;
+}
 .menu {
+  box-shadow: 0px 2px 12px #660066;
   list-style-type: none;
-  position: fixed;
-  top: 75px;
-  right: 170px;
+  position: absolute;
+  top: 24px;
+  right: 0px;
   z-index: 2;
 }
 .menu li {
-  background-color: rgba(100, 100, 100, 0.9); 
+  background-color: white;
+  border-color: #AAAAAA;
+  border-style: solid;
+  border-width: 0 1px 1px 1px;
+  color: #660066;
   cursor: pointer;
   padding: 10px 5px;
   width: 200px;
 }
 .menu li:hover {
-  background-color: rgba(128, 128, 128, 1); 
+  background-color: #FFFFCC; 
 }
 .bold-li {
   font-style: italic;
